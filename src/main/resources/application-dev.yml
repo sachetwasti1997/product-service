@@ -1,0 +1,6 @@
+server:
+  port: 8081
+
+product.config:
+  profile: dev
+  serverUrl: https://dummyjson.com/products

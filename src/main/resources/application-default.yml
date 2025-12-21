@@ -1,0 +1,22 @@
+server:
+  port: 8081
+
+spring:
+  jpa:
+    hibernate.dialect: org.hibernate.dialect.MySQL8Dialect
+
+product.config:
+  profile: default
+  serverUrl: https://dummyjson.com/products
+  skipStart: 0
+  skipLimit: 194
+  productCallCron: 0 */1 * * * ?
+  databaseConfiguration:
+    driverClassName: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/product01
+    userName: my-app-user
+    password: hawking101@
+    connectionTimeOut: 50000
+    maxLifeTime: 1800000
+    maxPoolSize: 5
+    poolName: product-db
