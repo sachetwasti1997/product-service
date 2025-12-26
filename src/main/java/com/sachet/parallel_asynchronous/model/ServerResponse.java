@@ -9,7 +9,7 @@ import java.util.List;
 @Setter
 public class ServerResponse {
 
-    List<Product> products;
+    List<ProductDto> products;
     private int total;
     private int skip;
     private int limit;

@@ -1,9 +1,9 @@
 package com.sachet.parallel_asynchronous.configuration.repo;
 
-import com.sachet.parallel_asynchronous.model.Product;
+import com.sachet.parallel_asynchronous.model.Review;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ProductsRepo extends JpaRepository<Product, Long> {
+public interface ReviewRepo extends JpaRepository<Review, Long> {
 }

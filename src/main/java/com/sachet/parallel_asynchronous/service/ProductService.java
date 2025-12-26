@@ -1,26 +1,31 @@
 package com.sachet.parallel_asynchronous.service;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sachet.parallel_asynchronous.configuration.EnvironmentConfiguration;
 import com.sachet.parallel_asynchronous.configuration.repo.ProductsRepo;
+import com.sachet.parallel_asynchronous.configuration.repo.ReviewRepo;
 import com.sachet.parallel_asynchronous.controller.ProductsController;
-import com.sachet.parallel_asynchronous.model.CacheCount;
-import com.sachet.parallel_asynchronous.model.Product;
-import com.sachet.parallel_asynchronous.model.Review;
-import com.sachet.parallel_asynchronous.model.ServerResponse;
+import com.sachet.parallel_asynchronous.model.*;
 import com.sachet.parallel_asynchronous.utils.ProductUtils;
+import jakarta.transaction.Transactional;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import tools.jackson.databind.ObjectMapper;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.*;
 
+@EnableAsync
 @Service
 public class ProductService {
 
@@ -29,31 +34,46 @@ public class ProductService {
     private final RestTemplate restTemplate;
     private final EnvironmentConfiguration environmentConfiguration;
     private final ProductsRepo productsRepo;
+    private final ReviewRepo reviewRepo;
+    private final ExecutorService executorService;
 
     public ProductService(RestTemplate restTemplate,
                           EnvironmentConfiguration environmentConfiguration,
-                          ProductsRepo productsRepo) {
+                          ProductsRepo productsRepo,
+                          ReviewRepo reviewRepo,
+                          ExecutorService executors) {
         this.restTemplate = restTemplate;
         this.environmentConfiguration = environmentConfiguration;
         this.productsRepo = productsRepo;
+        this.reviewRepo = reviewRepo;
+        executorService = executors;
     }
 
     @Scheduled(cron = "${product.config.productCallCron}")
-    public List<Product> getAndSaveProduct() {
+    public void getAndSaveProduct() {
         LOGGER.info("Started the process to fetch product from the api: {}", environmentConfiguration.getServerUrl());
         CacheCount cacheCount = ProductUtils.readCacheCount();
         if (cacheCount == null) {
-            return List.of();
+            return ;
         }
         if (cacheCount.getCount() >= cacheCount.getTotal()){
             LOGGER.info("Nothing more to read from the Api");
-            return List.of();
+            return ;
         }
         ResponseEntity<ServerResponse> products = callApi(cacheCount);
         LOGGER.info("The list of objects received {}", products.getBody());
+
         mapProductAndReviewsSaveAll(products.getBody().getProducts());
         incrementCacheAndSave(cacheCount);
-        return products.getBody().getProducts();
+    }
+
+    private void mapProductAndReviewsSaveAll(List<ProductDto> products) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        for (ProductDto productDto: products) {
+            Product product = objectMapper.convertValue(productDto, Product.class);
+            productsRepo.save(product);
+        }
     }
 
     private @NonNull ResponseEntity<ServerResponse> callApi(CacheCount cacheCount) {
@@ -71,15 +91,41 @@ public class ProductService {
         ProductUtils.writeCacheCount(cacheCount);
     }
 
-    private void mapProductAndReviewsSaveAll(List<Product> products) {
-        for (Product p: products) {
-            for (Review r: p.getReviews()) {
-                r.setProduct(p);
-            }
+    public List<Product> retrieveProductInfo(List<Long> productIds) {
+        long startTime = System.currentTimeMillis();
+        List<Product> products = new ArrayList<>();
+        for (Long id: productIds) {
+            products.add(productsRepo.getReferenceById(id));
         }
-        productsRepo.saveAll(products);
+        long endTime = System.currentTimeMillis();
+        LOGGER.info("All the products fetched in {}", (endTime - startTime));
+        return products;
     }
 
+    public Product findProductById(Long id) {
+        return productsRepo.findById(id).get();
+    }
 
+    public List<Product> findProductById(List<Long> productIds) throws InterruptedException, ExecutionException {
+        CompletableFuture<Product> productCompletableFuture1, productCompletableFuture2;
+        List<Product> productLists = new ArrayList<>();
+
+        for (int i = 0; i<productIds.size(); i+=2) {
+            long firstI = productIds.get(i);
+            productCompletableFuture1 = CompletableFuture.supplyAsync(() -> productsRepo.findById(firstI).orElse(new Product()));
+            if (i+1 < productIds.size()) {
+                long secondI = productIds.get(i+1);
+                productCompletableFuture2 = CompletableFuture.supplyAsync(() -> productsRepo.findById(secondI).orElse(new Product()));
+                CompletableFuture.allOf(productCompletableFuture1, productCompletableFuture2).join();
+                productLists.add(productCompletableFuture1.get());
+                productLists.add(productCompletableFuture2.get());
+            }else {
+                productLists.add(productCompletableFuture1.get());
+            }
+        }
+        return productLists;
+    }
+
+    public Product doOperationOnObject(){return new Product();}
 
 }
