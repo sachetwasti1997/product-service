@@ -13,8 +13,8 @@ product.config:
   productCallCron: 0 */1 * * * ?
   databaseConfiguration:
     driverClassName: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/product01
-    userName: my-app-user
+    url: jdbc:mysql://localhost:3306/ecommerce
+    userName: root
     password: hawking101@
     connectionTimeOut: 50000
     maxLifeTime: 1800000

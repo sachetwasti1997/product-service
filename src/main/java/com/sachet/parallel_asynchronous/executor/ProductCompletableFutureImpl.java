@@ -25,7 +25,7 @@ public class ProductCompletableFutureImpl {
         long startTime = System.currentTimeMillis();
         List<Product> products = new ArrayList<>();
         List<CompletableFuture<Product>> tasks = new ArrayList<>();
-        int batches = (ids.size() + BATCH_SIZE - 1)/BATCH_SIZE;
+        int batches = (ids.size()+BATCH_SIZE-1)/BATCH_SIZE;
         int currentBatchStart = 0;
         while (batches > 0) {
             int currentBatchEnd = Math.min(ids.size() - currentBatchStart, BATCH_SIZE);
@@ -33,14 +33,13 @@ public class ProductCompletableFutureImpl {
                 int currentIndex = k;
                 tasks.add(CompletableFuture.supplyAsync(() -> productsRepo.findById(ids.get(currentIndex)).orElse(new Product())));
             }
-//            LOGGER.info("Fetching current batch that starts from {}, with size {}", currentBatchStart, currentBatchEnd);
-//            List<Future<Product>> productFutures = executor.invokeAll(tasks);
+            currentBatchStart = k;
+            batches--;
             CompletableFuture.allOf(tasks.toArray(new CompletableFuture[0]));
             for (CompletableFuture<Product> t: tasks) {
                 products.add(t.get());
             }
-            currentBatchStart = k;
-            batches--;
+            tasks.clear();
         }
         LOGGER.info("The process completed in {}", (System.currentTimeMillis() - startTime));
         return products;
