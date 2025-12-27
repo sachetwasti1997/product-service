@@ -55,7 +55,12 @@ public class ProductsController {
     }
 
     @GetMapping("/get-products-async")
-    public List<Product> getProductAsync(@RequestBody List<Long> productIds) throws InterruptedException, ExecutionException {
+    public CompletableFuture<List<Product>> getProductAsync(@RequestBody List<Long> productIds) throws InterruptedException, ExecutionException {
+        return productCompletableFuture.getProductsByIdAsync(productIds);
+    }
+
+    @GetMapping("/get-mapping-async-batches")
+    public List<Product> getProductAsyncBatches(@RequestBody List<Long> productIds) throws ExecutionException, InterruptedException {
         return productCompletableFuture.getProductsById(productIds);
     }
 

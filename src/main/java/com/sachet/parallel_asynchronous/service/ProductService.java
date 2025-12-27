@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 
-@EnableAsync
 @Service
 public class ProductService {
 
@@ -35,18 +34,15 @@ public class ProductService {
     private final EnvironmentConfiguration environmentConfiguration;
     private final ProductsRepo productsRepo;
     private final ReviewRepo reviewRepo;
-    private final ExecutorService executorService;
 
     public ProductService(RestTemplate restTemplate,
                           EnvironmentConfiguration environmentConfiguration,
                           ProductsRepo productsRepo,
-                          ReviewRepo reviewRepo,
-                          ExecutorService executors) {
+                          ReviewRepo reviewRepo) {
         this.restTemplate = restTemplate;
         this.environmentConfiguration = environmentConfiguration;
         this.productsRepo = productsRepo;
         this.reviewRepo = reviewRepo;
-        executorService = executors;
     }
 
     @Scheduled(cron = "${product.config.productCallCron}")

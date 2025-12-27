@@ -5,6 +5,7 @@ import com.sachet.parallel_asynchronous.model.Product;
 import com.sachet.parallel_asynchronous.service.ProductService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -45,5 +46,17 @@ public class ProductCompletableFutureImpl {
         }
         LOGGER.info("The process completed in {}", (System.currentTimeMillis() - startTime));
         return products;
+    }
+
+    @Async
+    public CompletableFuture<List<Product>> getProductsByIdAsync(List<Long> ids) throws InterruptedException, ExecutionException {
+        List<CompletableFuture<Product>> tasks = new ArrayList<>();
+        for (long i: ids) {
+            tasks.add(CompletableFuture.supplyAsync(() -> productsRepo.findById(i).orElse(new Product())));
+        }
+        return CompletableFuture.allOf(tasks.toArray(new CompletableFuture[0]))
+                .thenApply(result -> tasks.stream()
+                        .map(f -> f.getNow(new Product()))
+                        .toList());
     }
 }
