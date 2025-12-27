@@ -2,6 +2,7 @@ package com.sachet.parallel_asynchronous.executor;
 
 import com.sachet.parallel_asynchronous.configuration.repo.ProductsRepo;
 import com.sachet.parallel_asynchronous.model.Product;
+import com.sachet.parallel_asynchronous.service.ProductService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -35,10 +36,11 @@ public class ProductCompletableFutureImpl {
             }
             currentBatchStart = k;
             batches--;
-            CompletableFuture.allOf(tasks.toArray(new CompletableFuture[0]));
-            for (CompletableFuture<Product> t: tasks) {
-                products.add(t.get());
-            }
+            products.addAll(CompletableFuture.allOf(tasks.toArray(new CompletableFuture[0]))
+                    .thenApply(result -> tasks.stream()
+                            .map(f -> f.getNow(new Product()))
+                            .toList())
+                    .join());
             tasks.clear();
         }
         LOGGER.info("The process completed in {}", (System.currentTimeMillis() - startTime));
