@@ -59,9 +59,9 @@ public class DataSourceConfiguration extends BeanConfigurationBase {
 
     }
 //
-    @Bean(name = "productNameParameterJdbcTemplate")
-    public JdbcTemplate getNamedParameterJdbcTemplate(EnvironmentConfiguration environmentConfiguration) {
-        return new JdbcTemplate(getProductDataSource(environmentConfiguration));
-    }
+//    @Bean(name = "productNameParameterJdbcTemplate")
+//    public JdbcTemplate getNamedParameterJdbcTemplate(EnvironmentConfiguration environmentConfiguration) {
+//        return new JdbcTemplate(getProductDataSource(environmentConfiguration));
+//    }
 
 }
