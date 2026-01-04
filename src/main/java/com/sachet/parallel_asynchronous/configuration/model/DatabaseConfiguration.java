@@ -7,6 +7,7 @@ import lombok.Setter;
 @Setter
 public class DatabaseConfiguration {
     private String url;
+    private String readUrl;
     private String driverClassName;
     private String userName;
     private String password;

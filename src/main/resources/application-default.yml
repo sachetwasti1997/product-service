@@ -6,7 +6,7 @@ spring:
     hibernate.dialect: org.hibernate.dialect.MySQL8Dialect
   kafka:
     consumer:
-      bootstrap-servers: kafka-svc:9092,kafka-svc:9093
+      bootstrap-servers: kafka-0.kafka-svc.default.svc.cluster.local:9093, kafka-1.kafka-svc.default.svc.cluster.local:9093, kafka-2.kafka-svc.default.svc.cluster.local:9093
       group-id: group-sachet
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
@@ -22,8 +22,8 @@ product.config:
   productCallCron: 0 */1 * * * ?
   databaseConfiguration:
     driverClassName: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://mysql:3306/ecommproduct
-    userName: root
+    url: jdbc:mysql://mysql-0.mysql.default.svc.cluster.local:3306/ecommproduct
+    userName: sachet
     password: hawking101@
     connectionTimeOut: 50000
     maxLifeTime: 1800000
