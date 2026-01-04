@@ -6,7 +6,7 @@ spring:
     hibernate.dialect: org.hibernate.dialect.MySQL8Dialect
   kafka:
     consumer:
-      bootstrap-servers: kafka-0.kafka-svc.default.svc.cluster.local:9093, kafka-1.kafka-svc.default.svc.cluster.local:9093, kafka-2.kafka-svc.default.svc.cluster.local:9093
+      bootstrap-servers: kafka-broker-0:9092,kafka-broker-1:9093,kafka-broker-2:9094
       group-id: group-sachet
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
