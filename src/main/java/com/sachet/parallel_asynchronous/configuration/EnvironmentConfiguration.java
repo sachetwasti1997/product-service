@@ -15,4 +15,5 @@ public class EnvironmentConfiguration {
     private String serverUrl;
     private DatabaseConfiguration databaseConfiguration;
     private String productCallCron;
+    private String imageServerUrl;
 }

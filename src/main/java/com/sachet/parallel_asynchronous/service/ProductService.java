@@ -66,10 +66,23 @@ public class ProductService {
     private void mapProductAndReviewsSaveAll(List<ProductDto> products) {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        String photoInfoUrl = environmentConfiguration.getImageServerUrl();
+        int id = 0;
         for (ProductDto productDto: products) {
             Product product = objectMapper.convertValue(productDto, Product.class);
+            List<Images> images = getImageInfo(id, photoInfoUrl, product);
+            product.setImages(images);
             productsRepo.save(product);
         }
+    }
+
+    private List<Images> getImageInfo(int id, String url, Product product) {
+        String[] urls = url.split("_");
+        Images image1 = new Images();
+        Images image2 = new Images();
+        image1.setUrl(urls[0]+id+urls[1]);
+        image1.setUrl(urls[0]+2*id+urls[1]);
+        return List.of(image1, image2);
     }
 
     private @NonNull ResponseEntity<ServerResponse> callApi(CacheCount cacheCount) {

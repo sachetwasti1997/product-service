@@ -19,6 +19,7 @@ product.config:
   serverUrl: https://dummyjson.com/products
   skipStart: 0
   skipLimit: 194
+  imageServerUrl: https://picsum.photos/id/_/info
   productCallCron: 0 */1 * * * ?
   databaseConfiguration:
     driverClassName: com.mysql.cj.jdbc.Driver
