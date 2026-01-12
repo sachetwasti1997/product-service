@@ -1,14 +1,9 @@
 package com.sachet.parallel_asynchronous.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
-import org.hibernate.annotations.ConcreteProxy;
-import org.hibernate.annotations.Fetch;
-import org.springframework.context.annotation.Proxyable;
 
 import java.util.List;
 
@@ -33,5 +28,5 @@ public class Product {
     private List<Review> reviews;
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JsonManagedReference
-    private List<Images> images;
+    private List<Images> imagesDto;
 }

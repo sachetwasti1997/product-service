@@ -18,5 +18,7 @@ public class ProductDto {
     private int stock;
     private List<String> tags;
     private List<Review> reviews;
+    private List<String> images;
+    private String thumbnail;
 
 }

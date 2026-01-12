@@ -5,15 +5,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sachet.parallel_asynchronous.configuration.EnvironmentConfiguration;
 import com.sachet.parallel_asynchronous.executor.ProductCompletableFutureImpl;
 import com.sachet.parallel_asynchronous.executor.ProductExecutorImpl;
-import com.sachet.parallel_asynchronous.model.Product;
-import com.sachet.parallel_asynchronous.model.ProductDto;
-import com.sachet.parallel_asynchronous.model.ServerResponse;
+import com.sachet.parallel_asynchronous.model.*;
 import com.sachet.parallel_asynchronous.service.ProductService;
 import jakarta.transaction.Transactional;
 import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +25,8 @@ import java.util.Objects;
 import java.util.concurrent.*;
 
 @RestController
+@RequestMapping("/product")
+@CrossOrigin("*")
 public class ProductsController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ProductsController.class);
@@ -50,11 +51,17 @@ public class ProductsController {
     }
 
     @GetMapping("/get-products")
-    public List<Product> getProducti(@RequestBody List<Long> productIds) {
-        return productService.retrieveProductInfo(productIds);
+    public PagingResult<Product> getProducts(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            @RequestParam(required = false) String sortField,
+            @RequestParam(required = false) Sort.Direction direction
+    ) {
+        PaginationRequest request = new PaginationRequest(page, size, "id", Sort.Direction.ASC);
+        return productService.findAll(request);
     }
 
-    @GetMapping("/get-products-async")
+    @PostMapping("/get-products-async")
     public CompletableFuture<List<Product>> getProductAsync(@RequestBody List<Long> productIds) throws InterruptedException, ExecutionException {
         return productCompletableFuture.getProductsByIdAsync(productIds);
     }

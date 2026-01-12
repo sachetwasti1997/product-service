@@ -3,6 +3,7 @@ package com.sachet.parallel_asynchronous.configuration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolExecutorFactoryBean;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.util.concurrent.Executor;
@@ -19,15 +20,27 @@ public class ServiceConfig {
 //    }
 //
     @Bean(name = "taskExecutor")
-    public Executor threadPoolExecutor() {
+    public ThreadPoolTaskExecutor threadPoolExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(Runtime.getRuntime().availableProcessors());
+        executor.setCorePoolSize(100);
         executor.setMaxPoolSize(100);
         executor.setQueueCapacity(500);
         executor.setThreadNamePrefix("exe-async-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.initialize();
         return executor;
+    }
+
+    @Bean(name = "poolFactory")
+    public ThreadPoolExecutorFactoryBean threadPoolExecutorFactoryBean() {
+        ThreadPoolExecutorFactoryBean bean = new ThreadPoolExecutorFactoryBean();
+        bean.setCorePoolSize(Runtime.getRuntime().availableProcessors());
+        bean.setMaxPoolSize(Runtime.getRuntime().availableProcessors());
+        bean.setQueueCapacity(Runtime.getRuntime().availableProcessors());
+        bean.setThreadNamePrefix("bean-async-");
+        bean.setWaitForTasksToCompleteOnShutdown(true);
+        bean.initialize();
+        return bean;
     }
 
 }

@@ -6,5 +6,5 @@ import lombok.Setter;
 @Getter
 @Setter
 public class PhotoInfo {
-    private String downloadUrl;
+    private String download_url;
 }
