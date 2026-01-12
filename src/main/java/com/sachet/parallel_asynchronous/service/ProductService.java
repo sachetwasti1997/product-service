@@ -1,12 +1,16 @@
 package com.sachet.parallel_asynchronous.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sachet.parallel_asynchronous.configuration.EnvironmentConfiguration;
 import com.sachet.parallel_asynchronous.configuration.repo.CacheRepo;
 import com.sachet.parallel_asynchronous.configuration.repo.ProductsRepo;
+import com.sachet.parallel_asynchronous.configuration.repo.ReviewRepo;
 import com.sachet.parallel_asynchronous.model.*;
 import com.sachet.parallel_asynchronous.utils.ProductUtils;
+import lombok.Synchronized;
+import org.hibernate.annotations.Synchronize;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +29,8 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.*;
 
 @Service
@@ -39,18 +45,23 @@ public class ProductService {
     private final ThreadPoolTaskExecutor executor;
     private final ExecutorService executorService;
     private int lastSuccessfulPhoto;
+    private final ObjectMapper objectMapper;
+    private final ReviewRepo reviewRepo;
 
     public ProductService(RestTemplate restTemplate,
                           EnvironmentConfiguration environmentConfiguration,
                           ProductsRepo productsRepo,
                           CacheRepo cacheRepo,
-                          @Qualifier("taskExecutor") ThreadPoolTaskExecutor executor) {
+                          @Qualifier("taskExecutor") ThreadPoolTaskExecutor executor, ReviewRepo reviewRepo) {
         this.restTemplate = restTemplate;
         this.environmentConfiguration = environmentConfiguration;
         this.productsRepo = productsRepo;
         this.cacheRepo = cacheRepo;
         this.executor = executor;
         this.executorService = executor.getThreadPoolExecutor();
+        this.reviewRepo = reviewRepo;
+        objectMapper = new ObjectMapper();
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
 //    @Scheduled(cron = "${product.config.productCallCron}")
@@ -62,9 +73,7 @@ public class ProductService {
                 LOGGER.info("Nothing more to read from the Api");
                 return;
             }
-            try(var exe = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors(), executor)) {
-                exe.submit(() -> startFetchProcess(cacheCount));
-            }
+            startFetchProcess(cacheCount);
         }catch (Exception e) {
             LOGGER.error("Caught Exception while reading products {}", e.getMessage());
         }
@@ -73,29 +82,30 @@ public class ProductService {
     private void startFetchProcess(CacheCount cacheCount) {
         LOGGER.info("Started the process to fetch product from the api: {}", environmentConfiguration.getServerUrl());
 
-        try {
+//        try {
             while (cacheCount.getCount() < cacheCount.getTotal()) {
                 int limit = Math.min(cacheCount.getTotal() - cacheCount.getCount(), cacheCount.getFetchLimit());
                 executorService.submit(() -> callApi(cacheCount.getCount(), limit));
                 LOGGER.info("Submitted the task to fetch {} records starting from {}", limit, cacheCount.getCount());
                 cacheCount.setCount(cacheCount.getCount() + limit);
             }
-        }catch (Exception e) {
-            LOGGER.error("Caught an exception while reading products");
-        }
+//        }catch (Exception e) {
+//            LOGGER.error("Caught an exception while reading products");
+//        }
 
 
 //        mapProductAndReviewsSaveAll(products.getBody().getProducts(), cacheCount);
         incrementCacheAndSave(cacheCount);
     }
 
-    private void mapProductAndReviewsSaveAll(List<ProductDto> products, int id) {
+    private synchronized void mapProductAndReviewsSaveAll(List<ProductDto> products, int id, int count) {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         String photoInfoUrl = environmentConfiguration.getImageServerUrl();
         for (ProductDto productDto: products) {
+            List<Images> images = new ArrayList<>();
+            LOGGER.info("Mapping the productDto {}", count++);
             Product product = objectMapper.convertValue(productDto, Product.class);
-            List<Images> images = new ArrayList<>(getImageInfo(id, photoInfoUrl, product));
             productDto.getImages().stream().forEach(image -> {
                 Images images1 = new Images();
                 images1.setUrl(image);
@@ -103,6 +113,7 @@ public class ProductService {
                 images1.setProduct(product);
                 images.add(images1);
             });
+//            images.addAll(new ArrayList<>(getImageInfo(id, photoInfoUrl, product)));
             product.setImagesDto(images);
             productsRepo.save(product);
             id++;
@@ -146,13 +157,14 @@ public class ProductService {
         return photoInfo;
     }
 
-    private @NonNull ResponseEntity<ServerResponse> callApi(int currentStart, int limit) {
+    private synchronized @NonNull ResponseEntity<ServerResponse> callApi(int currentStart, int limit) {
         LOGGER.info("Calling the API {} to fetch {} records", environmentConfiguration.getServerUrl(), limit);
 
         ResponseEntity<ServerResponse> response = restTemplate.exchange(environmentConfiguration.getServerUrl() + "?skip=" + currentStart + "&limit=" + limit,
                 HttpMethod.GET, null, ServerResponse.class);
         ServerResponse serverResponse = response.getBody();
-        mapProductAndReviewsSaveAll(serverResponse.getProducts(), currentStart);
+        int count = 0;
+        mapProductAndReviewsSaveAll(serverResponse.getProducts(), currentStart, count);
         return response;
     }
 
@@ -211,6 +223,20 @@ public class ProductService {
                 entities.getNumber(),
                 entities.isEmpty()
         );
+    }
+
+    public void saveProductReview(String jsonReview) throws JsonProcessingException {
+        ReviewDto reviewDto = objectMapper.readValue(jsonReview, ReviewDto.class);
+        Optional<Product> product = productsRepo.findById(reviewDto.getProductId());
+        if (product.isEmpty()){
+            LOGGER.info("No product found for the id {}, send in the review event",reviewDto.getProductId());
+            return;
+        }
+        Review review = objectMapper.convertValue(reviewDto, Review.class);
+        LOGGER.info("The review constructed from the submitted review by user: {}", review.getReviewerEmail());
+        review.setProduct(product.get());
+        reviewRepo.save(review);
+        LOGGER.info("Successfully saved the review!");
     }
 
 }
