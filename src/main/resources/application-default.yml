@@ -22,6 +22,8 @@ spring:
 
 product.config:
   profile: default
+  secret_key: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJzYUBnbWFpbC5jb20iLCJpYXQiOjE3NjY5MDgxMTAsImV4cCI6MTc2Njk0NDExMH0.cgcGILCZiiDcA5YBEkqCVPubeBDzapulT32NKHX8afK98W1Sn2w9rkNSPJ5pjTKC
+  token_expiration: 36000000
   serverUrl: https://dummyjson.com/products
   skipStart: 0
   skipLimit: 194

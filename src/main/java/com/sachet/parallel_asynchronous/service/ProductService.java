@@ -49,19 +49,22 @@ public class ProductService {
     private final ExecutorService executorService;
     private int lastSuccessfulPhoto;
     private final ObjectMapper objectMapper;
+    private final JwtService jwtService;
     private final ReviewRepo reviewRepo;
 
     public ProductService(RestTemplate restTemplate,
                           EnvironmentConfiguration environmentConfiguration,
                           ProductsRepo productsRepo,
                           CacheRepo cacheRepo,
-                          @Qualifier("taskExecutor") ThreadPoolTaskExecutor executor, ReviewRepo reviewRepo) {
+                          JwtService jwtService,
+                          @Qualifier("taskExecutor") ThreadPoolTaskExecutor executor, JwtService jwtService1, ReviewRepo reviewRepo) {
         this.restTemplate = restTemplate;
         this.environmentConfiguration = environmentConfiguration;
         this.productsRepo = productsRepo;
         this.cacheRepo = cacheRepo;
         this.executor = executor;
         this.executorService = executor.getThreadPoolExecutor();
+        this.jwtService = jwtService1;
         this.reviewRepo = reviewRepo;
         objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -223,18 +226,22 @@ public class ProductService {
         return entities.get().toList();
     }
 
-    public void saveProductReview(String jsonReview) throws JsonProcessingException {
-        ReviewDto reviewDto = objectMapper.readValue(jsonReview, ReviewDto.class);
-        Optional<Product> product = productsRepo.findById(reviewDto.getProductId());
-        if (product.isEmpty()){
-            LOGGER.info("No product found for the id {}, send in the review event",reviewDto.getProductId());
-            return;
-        }
+    public void saveProductReview(ReviewDto reviewDto, String token) {
+//        ReviewDto reviewDto = objectMapper.readValue(jsonReview, ReviewDto.class);
+//        Optional<Product> product = productsRepo.findById(reviewDto.getProductId());
+//        if (product.isEmpty()){
+//            LOGGER.info("No product found for the id {}, send in the review event",reviewDto.getProductId());
+//            return;
+//        }
+//        Review review = objectMapper.convertValue(reviewDto, Review.class);
+//        LOGGER.info("The review constructed from the submitted review by user: {}", review.getReviewerEmail());
+//        review.setProduct(product.get());
+//        reviewRepo.save(review);
+//        LOGGER.info("Successfully saved the review!");
+        String email = reviewDto.getReviewerEmail();
+        jwtService.validateToken(email, token);
         Review review = objectMapper.convertValue(reviewDto, Review.class);
-        LOGGER.info("The review constructed from the submitted review by user: {}", review.getReviewerEmail());
-        review.setProduct(product.get());
         reviewRepo.save(review);
-        LOGGER.info("Successfully saved the review!");
     }
 
 }

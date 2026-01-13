@@ -117,4 +117,10 @@ public class ProductsController {
         LOGGER.info("Fetched Products in {} milliseconds", (endTime-startTime));
         return productLists;
     }
+
+    @PostMapping("/add-comment")
+    public ResponseEntity<String> addComment(@RequestBody ReviewDto reviewDto, @RequestHeader("Authorization") String token) {
+        productService.saveProductReview(reviewDto, token);
+        return ResponseEntity.ok("Successfully saved comment");
+    }
 }
