@@ -51,14 +51,14 @@ public class ProductsController {
     }
 
     @GetMapping("/get-products")
-    public PagingResult<Product> getProducts(
+    public List<Product> getProducts(
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size,
             @RequestParam(required = false) String sortField,
             @RequestParam(required = false) Sort.Direction direction
     ) {
         PaginationRequest request = new PaginationRequest(page, size, "id", Sort.Direction.ASC);
-        return productService.findAll(request);
+        return productService.findAll(page, size);
     }
 
     @PostMapping("/get-products-async")

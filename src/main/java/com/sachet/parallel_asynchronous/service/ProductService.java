@@ -10,15 +10,18 @@ import com.sachet.parallel_asynchronous.configuration.repo.ReviewRepo;
 import com.sachet.parallel_asynchronous.model.*;
 import com.sachet.parallel_asynchronous.utils.ProductUtils;
 import lombok.Synchronized;
+import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.Synchronize;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -212,17 +215,12 @@ public class ProductService {
 
     public Product doOperationOnObject(){return new Product();}
 
-    public PagingResult<Product> findAll(PaginationRequest request) {
+    @Cacheable(value = "products-list", key = "#page")
+    public List<Product> findAll(int page, int size) {
+        PaginationRequest request = new PaginationRequest(page, size, "id", Sort.Direction.ASC);
         final Pageable pageable = ProductUtils.getPageable(request);
         final Page<Product> entities = productsRepo.findAll(pageable);
-        return new PagingResult<>(
-                entities.toList(),
-                entities.getTotalPages(),
-                entities.getTotalElements(),
-                entities.getSize(),
-                entities.getNumber(),
-                entities.isEmpty()
-        );
+        return entities.get().toList();
     }
 
     public void saveProductReview(String jsonReview) throws JsonProcessingException {
