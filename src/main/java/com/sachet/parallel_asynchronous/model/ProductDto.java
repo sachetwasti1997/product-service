@@ -18,6 +18,7 @@ public class ProductDto {
     private double discountPercentage;
     private double rating;
     private int stock;
+    private String email;
     private List<String> tags;
     private List<Review> reviews;
     private List<String> images;

@@ -7,6 +7,7 @@ import com.sachet.parallel_asynchronous.configuration.EnvironmentConfiguration;
 import com.sachet.parallel_asynchronous.configuration.repo.CacheRepo;
 import com.sachet.parallel_asynchronous.configuration.repo.ProductsRepo;
 import com.sachet.parallel_asynchronous.configuration.repo.ReviewRepo;
+import com.sachet.parallel_asynchronous.exception.JwtValidationFailedException;
 import com.sachet.parallel_asynchronous.model.*;
 import com.sachet.parallel_asynchronous.utils.ProductUtils;
 import lombok.Synchronized;
@@ -24,6 +25,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolExecutorFactoryBean;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -51,13 +53,14 @@ public class ProductService {
     private final ObjectMapper objectMapper;
     private final JwtService jwtService;
     private final ReviewRepo reviewRepo;
+    private final KafkaTemplate<String, String> kafkaTemplate;
 
     public ProductService(RestTemplate restTemplate,
                           EnvironmentConfiguration environmentConfiguration,
                           ProductsRepo productsRepo,
                           CacheRepo cacheRepo,
                           JwtService jwtService,
-                          @Qualifier("taskExecutor") ThreadPoolTaskExecutor executor, JwtService jwtService1, ReviewRepo reviewRepo) {
+                          @Qualifier("taskExecutor") ThreadPoolTaskExecutor executor, JwtService jwtService1, ReviewRepo reviewRepo, KafkaTemplate<String, String> kafkaTemplate) {
         this.restTemplate = restTemplate;
         this.environmentConfiguration = environmentConfiguration;
         this.productsRepo = productsRepo;
@@ -66,6 +69,7 @@ public class ProductService {
         this.executorService = executor.getThreadPoolExecutor();
         this.jwtService = jwtService1;
         this.reviewRepo = reviewRepo;
+        this.kafkaTemplate = kafkaTemplate;
         objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
@@ -239,9 +243,26 @@ public class ProductService {
 //        reviewRepo.save(review);
 //        LOGGER.info("Successfully saved the review!");
         String email = reviewDto.getReviewerEmail();
-        jwtService.validateToken(email, token);
+        if (!jwtService.validateToken(email, token)) {
+            throw new JwtValidationFailedException("Invalid Jwt");
+        }
         Review review = objectMapper.convertValue(reviewDto, Review.class);
         reviewRepo.save(review);
+    }
+
+    public long saveProduct(ProductDto productDto, String token) throws JsonProcessingException {
+        Product product = objectMapper.convertValue(productDto, Product.class);
+        String email = productDto.getEmail();
+        if (!jwtService.validateToken(email, token)) {
+            throw new JwtValidationFailedException("Invalid Jwt");
+        }
+        productsRepo.save(product);
+        LOGGER.info("Saved the product with Id: {}", product.getId());
+        kafkaTemplate.send("user-add-product", objectMapper.writeValueAsString(product))
+                .thenAccept(result -> {
+                    LOGGER.info("Successfully sent the event {}", result);
+                }).join();
+        return product.getId();
     }
 
 }

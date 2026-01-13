@@ -1,5 +1,6 @@
 package com.sachet.parallel_asynchronous.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sachet.parallel_asynchronous.configuration.EnvironmentConfiguration;
@@ -122,5 +123,11 @@ public class ProductsController {
     public ResponseEntity<String> addComment(@RequestBody ReviewDto reviewDto, @RequestHeader("Authorization") String token) {
         productService.saveProductReview(reviewDto, token);
         return ResponseEntity.ok("Successfully saved comment");
+    }
+
+    @PostMapping("/add-product")
+    public ResponseEntity<String> addProduct(@RequestBody ProductDto product, @RequestHeader("Authorization") String token) throws JsonProcessingException {
+        long id = productService.saveProduct(product, token);
+        return ResponseEntity.ok("Successfully saved Product with id: "+id);
     }
 }
