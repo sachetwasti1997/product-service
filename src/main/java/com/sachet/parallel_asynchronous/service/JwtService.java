@@ -35,9 +35,11 @@ public class JwtService {
     }
 
     private boolean extractUserNameExpiration(String userName, String token) {
+        LOGGER.info("The token is:{}", token);
         Claims claims = extractAllClaims(token);
         String email = resolve(claims, Claims::getSubject);
         Date exp = resolve(claims, Claims::getExpiration);
+        LOGGER.info("Email {}, expirationDate{}", email, exp);
         return email.equals(userName) && exp.compareTo(new Date()) > 0;
     }
 
