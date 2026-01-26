@@ -74,7 +74,7 @@ public class ProductService {
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
-//    @Scheduled(cron = "${product.config.productCallCron}")
+    //    @Scheduled(cron = "${product.config.productCallCron}")
     @EventListener(ApplicationReadyEvent.class)
     public void getAndSaveProduct() {
         try {
@@ -84,7 +84,7 @@ public class ProductService {
                 return;
             }
             startFetchProcess(cacheCount);
-        }catch (Exception e) {
+        } catch (Exception e) {
             LOGGER.error("Caught Exception while reading products {}", e.getMessage());
         }
     }
@@ -92,27 +92,23 @@ public class ProductService {
     private void startFetchProcess(CacheCount cacheCount) {
         LOGGER.info("Started the process to fetch product from the api: {}", environmentConfiguration.getServerUrl());
 
-//        try {
-            while (cacheCount.getCount() < cacheCount.getTotal()) {
-                int limit = Math.min(cacheCount.getTotal() - cacheCount.getCount(), cacheCount.getFetchLimit());
-                executorService.submit(() -> callApi(cacheCount.getCount(), limit));
-                LOGGER.info("Submitted the task to fetch {} records starting from {}", limit, cacheCount.getCount());
-                cacheCount.setCount(cacheCount.getCount() + limit);
-            }
-//        }catch (Exception e) {
-//            LOGGER.error("Caught an exception while reading products");
-//        }
+        int startCount = cacheCount.getCount();
+        int totalCount = cacheCount.getTotal();
+        while (startCount < totalCount) {
+            int limit = Math.min(totalCount - startCount, cacheCount.getFetchLimit());
+            executorService.submit(() -> callApi(cacheCount.getCount(), limit));
+            LOGGER.info("Submitted the task to fetch {} records starting from {}", limit, startCount);
+            startCount += limit;
+        }
 
-
-//        mapProductAndReviewsSaveAll(products.getBody().getProducts(), cacheCount);
-        incrementCacheAndSave(cacheCount);
+        incrementCacheAndSave(cacheCount, startCount);
     }
 
-    private synchronized void mapProductAndReviewsSaveAll(List<ProductDto> products, int id, int count) {
+    private synchronized void mapProductAndReviewsSaveAll(List<ProductDto> products, int id, int count) throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         String photoInfoUrl = environmentConfiguration.getImageServerUrl();
-        for (ProductDto productDto: products) {
+        for (ProductDto productDto : products) {
             List<Images> images = new ArrayList<>();
             LOGGER.info("Mapping the productDto {}", count++);
             Product product = objectMapper.convertValue(productDto, Product.class);
@@ -126,6 +122,15 @@ public class ProductService {
 //            images.addAll(new ArrayList<>(getImageInfo(id, photoInfoUrl, product)));
             product.setImagesDto(images);
             productsRepo.save(product);
+            ProductEvent event = new ProductEvent();
+            event.setPrice(product.getPrice());
+            event.setVersion(0);
+            event.setTitle(product.getTitle());
+            event.setId(product.getId());
+            kafkaTemplate.send("user-add-product", objectMapper.writeValueAsString(event))
+                    .thenAccept(result -> {
+                        LOGGER.info("Successfully sent the event {}", result);
+                    }).join();
             id++;
         }
     }
@@ -133,7 +138,7 @@ public class ProductService {
     private List<Images> getImageInfo(int id, String url, Product product) {
         String[] urls = url.split("_");
         PhotoInfo photoInfo = getPhoto(urls, id);
-        PhotoInfo photoInfo2 = getPhoto(urls, 2*id);
+        PhotoInfo photoInfo2 = getPhoto(urls, 2 * id);
         Images image1 = new Images();
         Images image2 = new Images();
         image1.setUrl(photoInfo.getDownload_url());
@@ -146,15 +151,15 @@ public class ProductService {
     }
 
     private PhotoInfo getPhoto(String[] urls, int id) {
-        String url = urls[0]+id+urls[1];
+        String url = urls[0] + id + urls[1];
         try {
             LOGGER.info("Downloading photo for the product from url {}", url);
             ResponseEntity<PhotoInfo> photoInfo = restTemplate.exchange(url, HttpMethod.GET, null, PhotoInfo.class);
             lastSuccessfulPhoto = id;
             return photoInfo.getBody();
-        }catch (Exception e) {
+        } catch (Exception e) {
             LOGGER.error("No photo found in {}", url);
-            url = urls[0]+lastSuccessfulPhoto+urls[1];
+            url = urls[0] + lastSuccessfulPhoto + urls[1];
             if (lastSuccessfulPhoto != 0) {
                 LOGGER.info("Donloading alternate photo ");
                 ResponseEntity<PhotoInfo> photoInfo = restTemplate.exchange(url, HttpMethod.GET, null, PhotoInfo.class);
@@ -167,7 +172,7 @@ public class ProductService {
         return photoInfo;
     }
 
-    private synchronized @NonNull ResponseEntity<ServerResponse> callApi(int currentStart, int limit) {
+    private synchronized @NonNull ResponseEntity<ServerResponse> callApi(int currentStart, int limit) throws JsonProcessingException {
         LOGGER.info("Calling the API {} to fetch {} records", environmentConfiguration.getServerUrl(), limit);
 
         ResponseEntity<ServerResponse> response = restTemplate.exchange(environmentConfiguration.getServerUrl() + "?skip=" + currentStart + "&limit=" + limit,
@@ -178,9 +183,10 @@ public class ProductService {
         return response;
     }
 
-    private void incrementCacheAndSave(CacheCount cacheCount) {
+    private void incrementCacheAndSave(CacheCount cacheCount, int currentCount) {
 //        cacheCount.setCount(cacheCount.getCount());
 //        ProductUtils.writeCacheCount(cacheCount);
+        cacheCount.setCount(currentCount);
         LOGGER.info("Saving cache {}", cacheCount);
         cacheRepo.save(cacheCount);
     }
@@ -188,7 +194,7 @@ public class ProductService {
     public List<Product> retrieveProductInfo(List<Long> productIds) {
         long startTime = System.currentTimeMillis();
         List<Product> products = new ArrayList<>();
-        for (Long id: productIds) {
+        for (Long id : productIds) {
             products.add(productsRepo.getReferenceById(id));
         }
         long endTime = System.currentTimeMillis();
@@ -204,23 +210,25 @@ public class ProductService {
         CompletableFuture<Product> productCompletableFuture1, productCompletableFuture2;
         List<Product> productLists = new ArrayList<>();
 
-        for (int i = 0; i<productIds.size(); i+=2) {
+        for (int i = 0; i < productIds.size(); i += 2) {
             long firstI = productIds.get(i);
             productCompletableFuture1 = CompletableFuture.supplyAsync(() -> productsRepo.findById(firstI).orElse(new Product()));
-            if (i+1 < productIds.size()) {
-                long secondI = productIds.get(i+1);
+            if (i + 1 < productIds.size()) {
+                long secondI = productIds.get(i + 1);
                 productCompletableFuture2 = CompletableFuture.supplyAsync(() -> productsRepo.findById(secondI).orElse(new Product()));
                 CompletableFuture.allOf(productCompletableFuture1, productCompletableFuture2).join();
                 productLists.add(productCompletableFuture1.get());
                 productLists.add(productCompletableFuture2.get());
-            }else {
+            } else {
                 productLists.add(productCompletableFuture1.get());
             }
         }
         return productLists;
     }
 
-    public Product doOperationOnObject(){return new Product();}
+    public Product doOperationOnObject() {
+        return new Product();
+    }
 
     @Cacheable(value = "products-list", key = "#page")
     public List<Product> findAll(int page, int size) {
