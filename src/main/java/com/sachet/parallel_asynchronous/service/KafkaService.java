@@ -37,4 +37,16 @@ public class KafkaService {
 //        }
 //    }
 
+    @KafkaListener(topics = "order-created", groupId = "${spring.kafka.consumer.group-id}")
+    public void listenOrderCreated(String data) throws JsonProcessingException {
+        LOGGER.info("Received order created event: {}", data);
+        productService.orderCreated(data);
+    }
+
+    @KafkaListener(topics = "order-cancelled", groupId = "${spring.kafka.consumer.group-id}")
+    public void listenOrderCancelled(String data) throws JsonProcessingException {
+        LOGGER.info("Received order cancelled event: {}", data);
+        productService.orderCancelled(data);
+    }
+
 }

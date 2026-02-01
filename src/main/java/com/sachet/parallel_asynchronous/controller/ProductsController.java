@@ -76,21 +76,21 @@ public class ProductsController {
         CompletableFuture<Product> productCompletableFuture1, productCompletableFuture2;
         List<Product> productLists = new ArrayList<>();
         long startTime = System.currentTimeMillis();
-        for (int i = 0; i<productIds.size(); i+=2) {
+        for (int i = 0; i < productIds.size(); i += 2) {
             long firstI = productIds.get(i);
             productCompletableFuture1 = CompletableFuture.supplyAsync(() -> productService.findProductById(firstI));
-            if (i+1 < productIds.size()) {
-                long secondI = productIds.get(i+1);
+            if (i + 1 < productIds.size()) {
+                long secondI = productIds.get(i + 1);
                 productCompletableFuture2 = CompletableFuture.supplyAsync(() -> productService.findProductById(secondI));
                 CompletableFuture.allOf(productCompletableFuture1, productCompletableFuture2).join();
                 productLists.add(productCompletableFuture1.get());
                 productLists.add(productCompletableFuture2.get());
-            }else {
+            } else {
                 productLists.add(productCompletableFuture1.get());
             }
         }
         long endTime = System.currentTimeMillis();
-        LOGGER.info("Fetched Products in {} milliseconds", (endTime-startTime));
+        LOGGER.info("Fetched Products in {} milliseconds", (endTime - startTime));
         return productLists;
     }
 
@@ -98,16 +98,16 @@ public class ProductsController {
         CompletableFuture<Product> productCompletableFuture1, productCompletableFuture2;
         List<Product> productLists = new ArrayList<>();
         long startTime = System.currentTimeMillis();
-        for (int i = 0; i<productIds.size(); i+=2) {
-            if (i+1 < productIds.size()) {
+        for (int i = 0; i < productIds.size(); i += 2) {
+            if (i + 1 < productIds.size()) {
                 int I = i;
                 Thread t1 = new Thread(() -> productLists.add(productService.findProductById(productIds.get(I))));
-                Thread t2 = new Thread(() -> productLists.add(productService.findProductById(productIds.get(I+1))));
+                Thread t2 = new Thread(() -> productLists.add(productService.findProductById(productIds.get(I + 1))));
                 t1.start();
                 t2.start();
                 t1.join();
                 t2.join();
-            }else {
+            } else {
                 int I = i;
                 Thread t1 = new Thread(() -> productLists.add(productService.findProductById(productIds.get(I))));
                 t1.start();
@@ -115,7 +115,7 @@ public class ProductsController {
             }
         }
         long endTime = System.currentTimeMillis();
-        LOGGER.info("Fetched Products in {} milliseconds", (endTime-startTime));
+        LOGGER.info("Fetched Products in {} milliseconds", (endTime - startTime));
         return productLists;
     }
 
@@ -128,6 +128,12 @@ public class ProductsController {
     @PostMapping("/add-product")
     public ResponseEntity<String> addProduct(@RequestBody ProductDto product, @RequestHeader("Authorization") String token) throws JsonProcessingException {
         long id = productService.saveProduct(product, token);
-        return ResponseEntity.ok("Successfully saved Product with id: "+id);
+        return ResponseEntity.ok("Successfully saved Product with id: " + id);
+    }
+
+    @PutMapping("/update")
+    public ResponseEntity<String> updateProduct(@RequestBody ProductDto productDto, @RequestHeader("Authorization") String token) throws JsonProcessingException {
+        long id = productService.updateProduct(productDto, token);
+        return ResponseEntity.ok("Successfully updated product with id: " + id);
     }
 }

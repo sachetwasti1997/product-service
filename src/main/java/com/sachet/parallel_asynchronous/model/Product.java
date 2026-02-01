@@ -23,6 +23,7 @@ public class Product implements Serializable {
     private double discountPercentage;
     private double rating;
     private int stock;
+    private boolean isReserved;
     private List<String> tags;
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JsonManagedReference
