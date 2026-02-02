@@ -14,4 +14,5 @@ public class OrderDto {
     private Date expiresAt;
     private Long productId;
     private double price;
+    private int count;
 }

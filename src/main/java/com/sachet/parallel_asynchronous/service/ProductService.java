@@ -113,6 +113,7 @@ public class ProductService {
             List<Images> images = new ArrayList<>();
             LOGGER.info("Mapping the productDto {}", count++);
             Product product = objectMapper.convertValue(productDto, Product.class);
+            product.setEmail("sachetwasti61@gmail.com");
             productDto.getImages().stream().forEach(image -> {
                 Images images1 = new Images();
                 images1.setUrl(image);
@@ -129,6 +130,7 @@ public class ProductService {
             event.setTitle(product.getTitle());
             event.setId(product.getId());
             event.setCount(product.getStock());
+            event.setEmail(product.getEmail());
             event.setImageUrl(product.getImagesDto().get(0).getUrl());
             kafkaTemplate.send("user-add-product", objectMapper.writeValueAsString(event))
                     .thenAccept(result -> {
@@ -264,12 +266,22 @@ public class ProductService {
     public long saveProduct(ProductDto productDto, String token) throws JsonProcessingException {
         Product product = objectMapper.convertValue(productDto, Product.class);
         String email = productDto.getEmail();
+        token = token.substring(7);
         if (!jwtService.validateToken(email, token)) {
             throw new JwtValidationFailedException("Invalid Jwt");
         }
         productsRepo.save(product);
         LOGGER.info("Saved the product with Id: {}", product.getId());
-        kafkaTemplate.send("user-add-product", objectMapper.writeValueAsString(product))
+        ProductEvent event = new ProductEvent();
+        event.setPrice(product.getPrice());
+        event.setVersion(0);
+        event.setTitle(product.getTitle());
+        event.setId(product.getId());
+        event.setCount(product.getStock());
+        event.setEmail(product.getEmail());
+        if (product.getImagesDto() != null && !product.getImagesDto().isEmpty())
+            event.setImageUrl(product.getImagesDto().get(0).getUrl());
+        kafkaTemplate.send("user-add-product", objectMapper.writeValueAsString(event))
                 .thenAccept(result -> {
                     LOGGER.info("Successfully sent the event {}", result);
                 }).join();
@@ -281,9 +293,6 @@ public class ProductService {
         String email = productDto.getEmail();
         if (!jwtService.validateToken(email, token)) {
             throw new JwtValidationFailedException("Invalid Jwt");
-        }
-        if (product.isReserved()) {
-            throw new NoProductToUpdate("There are not products to update");
         }
         productsRepo.save(product);
         LOGGER.info("Saved the product with Id: {}", product.getId());
@@ -314,7 +323,7 @@ public class ProductService {
         long productId = orderDto.getProductId();
         Optional<Product> product = productsRepo.findById(productId);
         Product productItem = product.get();
-        productItem.setReserved(true);
+        productItem.setStock(productItem.getStock() - orderDto.getCount());
         productsRepo.save(productItem);
         LOGGER.info("Successfully reserved the product: {}", productItem);
     }
@@ -324,7 +333,7 @@ public class ProductService {
         long productId = orderDto.getProductId();
         Optional<Product> product = productsRepo.findById(productId);
         Product productItem = product.get();
-        productItem.setReserved(false);
+        productItem.setStock(productItem.getStock() + orderDto.getCount());
         productsRepo.save(productItem);
         LOGGER.info("Successfully unreserved the product: {}", productItem);
     }

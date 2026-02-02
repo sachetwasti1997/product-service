@@ -39,15 +39,15 @@ public class JwtService {
         Claims claims = extractAllClaims(token);
         String email = resolve(claims, Claims::getSubject);
         Date exp = resolve(claims, Claims::getExpiration);
-        LOGGER.info("Email {}, expirationDate{}", email, exp);
+        LOGGER.info("Email {}, UserName {}, expirationDate{}", email, userName, exp);
         return email.equals(userName) && exp.compareTo(new Date()) > 0;
     }
 
-    public <T> T resolve(Claims claims, Function<Claims, T> claimsResolver){
+    public <T> T resolve(Claims claims, Function<Claims, T> claimsResolver) {
         return claimsResolver.apply(claims);
     }
 
-    private Claims extractAllClaims(String token){
+    private Claims extractAllClaims(String token) {
         return Jwts.parser()
                 .verifyWith(key)
                 .build()
@@ -55,10 +55,10 @@ public class JwtService {
                 .getPayload();
     }
 
-    public Boolean validateToken(String userName, String token){
-        try{
+    public Boolean validateToken(String userName, String token) {
+        try {
             return extractUserNameExpiration(userName, token);
-        }catch (Exception e) {
+        } catch (Exception e) {
             LOGGER.error("Error while validating token {}", e.getMessage());
         }
         return false;

@@ -14,6 +14,7 @@ public class ProductEvent implements Serializable {
     private double price;
     private int version;
     private int count;
+    private String email;
     private String imageUrl;
 
 }
