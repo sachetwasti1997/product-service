@@ -1,0 +1,35 @@
+{
+  "namespace": "com.sachet.parallel_asynchronous.model.dto",
+  "type": "record",
+  "name": "ProductDto",
+  "fields": [
+    {
+      "name": "id",
+      "type": "long"
+    },
+    {
+      "name": "title",
+      "type": "string"
+    },
+    {
+      "name": "price",
+      "type": "double"
+    },
+    {
+      "name": "version",
+      "type": "int"
+    },
+    {
+      "name": "count",
+      "type": "int"
+    },
+    {
+      "name": "email",
+      "type": "string"
+    },
+    {
+      "name": "imageUrl",
+      "type": "string"
+    }
+  ]
+}

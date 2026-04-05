@@ -54,14 +54,14 @@ public class ProductService {
     private final ObjectMapper objectMapper;
     private final JwtService jwtService;
     private final ReviewRepo reviewRepo;
-    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final KafkaTemplate<String, com.sachet.parallel_asynchronous.model.dto.ProductDto> kafkaTemplate;
 
     public ProductService(RestTemplate restTemplate,
                           EnvironmentConfiguration environmentConfiguration,
                           ProductsRepo productsRepo,
                           CacheRepo cacheRepo,
                           JwtService jwtService,
-                          @Qualifier("taskExecutor") ThreadPoolTaskExecutor executor, JwtService jwtService1, ReviewRepo reviewRepo, KafkaTemplate<String, String> kafkaTemplate) {
+                          @Qualifier("taskExecutor") ThreadPoolTaskExecutor executor, JwtService jwtService1, ReviewRepo reviewRepo, KafkaTemplate<String, com.sachet.parallel_asynchronous.model.dto.ProductDto> kafkaTemplate) {
         this.restTemplate = restTemplate;
         this.environmentConfiguration = environmentConfiguration;
         this.productsRepo = productsRepo;
@@ -124,15 +124,15 @@ public class ProductService {
 //            images.addAll(new ArrayList<>(getImageInfo(id, photoInfoUrl, product)));
             product.setImagesDto(images);
             productsRepo.save(product);
-            ProductEvent event = new ProductEvent();
-            event.setPrice(product.getPrice());
+            com.sachet.parallel_asynchronous.model.dto.ProductDto event = new com.sachet.parallel_asynchronous.model.dto.ProductDto();
+            event.setPrice(9.99);
             event.setVersion(0);
-            event.setTitle(product.getTitle());
-            event.setId(product.getId());
-            event.setCount(product.getStock());
-            event.setEmail(product.getEmail());
-            event.setImageUrl(product.getImagesDto().get(0).getUrl());
-            kafkaTemplate.send("user-add-product", objectMapper.writeValueAsString(event))
+            event.setTitle("title");
+            event.setId(1001);
+            event.setCount(3);
+            event.setEmail("sachet");
+            event.setImageUrl("url");
+            kafkaTemplate.send("user-add-product", event)
                     .thenAccept(result -> {
                         LOGGER.info("Successfully sent the event {}", result);
                     }).join();
@@ -272,7 +272,7 @@ public class ProductService {
         }
         productsRepo.save(product);
         LOGGER.info("Saved the product with Id: {}", product.getId());
-        ProductEvent event = new ProductEvent();
+        com.sachet.parallel_asynchronous.model.dto.ProductDto event = new com.sachet.parallel_asynchronous.model.dto.ProductDto();
         event.setPrice(product.getPrice());
         event.setVersion(0);
         event.setTitle(product.getTitle());
@@ -281,42 +281,42 @@ public class ProductService {
         event.setEmail(product.getEmail());
         if (product.getImagesDto() != null && !product.getImagesDto().isEmpty())
             event.setImageUrl(product.getImagesDto().get(0).getUrl());
-        kafkaTemplate.send("user-add-product", objectMapper.writeValueAsString(event))
+        kafkaTemplate.send("user-add-product", event)
                 .thenAccept(result -> {
                     LOGGER.info("Successfully sent the event {}", result);
                 }).join();
         return product.getId();
     }
 
-    public long updateProduct(ProductDto productDto, String token) throws JsonProcessingException {
-        Product product = objectMapper.convertValue(productDto, Product.class);
-        String email = productDto.getEmail();
-        if (!jwtService.validateToken(email, token)) {
-            throw new JwtValidationFailedException("Invalid Jwt");
-        }
-        productsRepo.save(product);
-        LOGGER.info("Saved the product with Id: {}", product.getId());
-        kafkaTemplate.send("update-product", objectMapper.writeValueAsString(product))
-                .thenAccept(result -> {
-                    LOGGER.info("Successfully sent the event {}", result);
-                }).join();
-        return product.getId();
-    }
-
-    public long updateProductQuantity(ProductDto productDto, String token) throws JsonProcessingException {
-        Product product = objectMapper.convertValue(productDto, Product.class);
-        String email = productDto.getEmail();
-        if (!jwtService.validateToken(email, token)) {
-            throw new JwtValidationFailedException("Invalid Jwt");
-        }
-        productsRepo.save(product);
-        LOGGER.info("Saved the product with Id: {}", product.getId());
-        kafkaTemplate.send("update-product", objectMapper.writeValueAsString(product))
-                .thenAccept(result -> {
-                    LOGGER.info("Successfully sent the event {}", result);
-                }).join();
-        return product.getId();
-    }
+//    public long updateProduct(ProductDto productDto, String token) throws JsonProcessingException {
+//        Product product = objectMapper.convertValue(productDto, Product.class);
+//        String email = productDto.getEmail();
+//        if (!jwtService.validateToken(email, token)) {
+//            throw new JwtValidationFailedException("Invalid Jwt");
+//        }
+//        productsRepo.save(product);
+//        LOGGER.info("Saved the product with Id: {}", product.getId());
+//        kafkaTemplate.send("update-product", objectMapper.writeValueAsString(product))
+//                .thenAccept(result -> {
+//                    LOGGER.info("Successfully sent the event {}", result);
+//                }).join();
+//        return product.getId();
+//    }
+//
+//    public long updateProductQuantity(ProductDto productDto, String token) throws JsonProcessingException {
+//        Product product = objectMapper.convertValue(productDto, Product.class);
+//        String email = productDto.getEmail();
+//        if (!jwtService.validateToken(email, token)) {
+//            throw new JwtValidationFailedException("Invalid Jwt");
+//        }
+//        productsRepo.save(product);
+//        LOGGER.info("Saved the product with Id: {}", product.getId());
+//        kafkaTemplate.send("update-product", objectMapper.writeValueAsString(product))
+//                .thenAccept(result -> {
+//                    LOGGER.info("Successfully sent the event {}", result);
+//                }).join();
+//        return product.getId();
+//    }
 
     public void orderCreated(String jsonOrder) throws JsonProcessingException {
         OrderDto orderDto = objectMapper.readValue(jsonOrder, OrderDto.class);

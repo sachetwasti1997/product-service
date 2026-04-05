@@ -131,9 +131,9 @@ public class ProductsController {
         return ResponseEntity.ok("Successfully saved Product with id: " + id);
     }
 
-    @PutMapping("/update")
-    public ResponseEntity<String> updateProduct(@RequestBody ProductDto productDto, @RequestHeader("Authorization") String token) throws JsonProcessingException {
-        long id = productService.updateProduct(productDto, token);
-        return ResponseEntity.ok("Successfully updated product with id: " + id);
-    }
+//    @PutMapping("/update")
+//    public ResponseEntity<String> updateProduct(@RequestBody ProductDto productDto, @RequestHeader("Authorization") String token) throws JsonProcessingException {
+//        long id = productService.updateProduct(productDto, token);
+//        return ResponseEntity.ok("Successfully updated product with id: " + id);
+//    }
 }
