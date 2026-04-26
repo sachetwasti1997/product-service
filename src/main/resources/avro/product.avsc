@@ -1,5 +1,5 @@
 {
-  "namespace": "com.sachet.parallel_asynchronous.model.dto",
+  "namespace": "com.sachet",
   "type": "record",
   "name": "ProductDto",
   "fields": [

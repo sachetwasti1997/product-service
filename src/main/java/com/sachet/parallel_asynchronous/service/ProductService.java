@@ -8,19 +8,13 @@ import com.sachet.parallel_asynchronous.configuration.repo.CacheRepo;
 import com.sachet.parallel_asynchronous.configuration.repo.ProductsRepo;
 import com.sachet.parallel_asynchronous.configuration.repo.ReviewRepo;
 import com.sachet.parallel_asynchronous.exception.JwtValidationFailedException;
-import com.sachet.parallel_asynchronous.exception.NoProductToUpdate;
 import com.sachet.parallel_asynchronous.model.*;
 import com.sachet.parallel_asynchronous.utils.ProductUtils;
-import lombok.Synchronized;
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.Synchronize;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -28,16 +22,14 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.scheduling.concurrent.ThreadPoolExecutorFactoryBean;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.*;
+
+import static com.sachet.parallel_asynchronous.utils.SQLConstants.randomEmailList;
 
 @Service
 public class ProductService {
@@ -54,14 +46,16 @@ public class ProductService {
     private final ObjectMapper objectMapper;
     private final JwtService jwtService;
     private final ReviewRepo reviewRepo;
-    private final KafkaTemplate<String, com.sachet.parallel_asynchronous.model.dto.ProductDto> kafkaTemplate;
+    private final KafkaTemplate<String, com.sachet.ProductDto> kafkaTemplate;
 
     public ProductService(RestTemplate restTemplate,
                           EnvironmentConfiguration environmentConfiguration,
                           ProductsRepo productsRepo,
                           CacheRepo cacheRepo,
                           JwtService jwtService,
-                          @Qualifier("taskExecutor") ThreadPoolTaskExecutor executor, JwtService jwtService1, ReviewRepo reviewRepo, KafkaTemplate<String, com.sachet.parallel_asynchronous.model.dto.ProductDto> kafkaTemplate) {
+                          @Qualifier("taskExecutor") ThreadPoolTaskExecutor executor,
+                          JwtService jwtService1, ReviewRepo reviewRepo,
+                         KafkaTemplate<String, com.sachet.ProductDto> kafkaTemplate) {
         this.restTemplate = restTemplate;
         this.environmentConfiguration = environmentConfiguration;
         this.productsRepo = productsRepo;
@@ -75,8 +69,8 @@ public class ProductService {
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
-    //    @Scheduled(cron = "${product.config.productCallCron}")
-    @EventListener(ApplicationReadyEvent.class)
+        @Scheduled(cron = "${product.config.productCallCron}")
+//    @EventListener(ApplicationReadyEvent.class)
     public void getAndSaveProduct() {
         try {
             CacheCount cacheCount = cacheRepo.findAll().getFirst();
@@ -109,34 +103,39 @@ public class ProductService {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         String photoInfoUrl = environmentConfiguration.getImageServerUrl();
-        for (ProductDto productDto : products) {
-            List<Images> images = new ArrayList<>();
-            LOGGER.info("Mapping the productDto {}", count++);
-            Product product = objectMapper.convertValue(productDto, Product.class);
-            product.setEmail("sachetwasti61@gmail.com");
-            productDto.getImages().stream().forEach(image -> {
-                Images images1 = new Images();
-                images1.setUrl(image);
-                images1.setIsDownloaded(0);
-                images1.setProduct(product);
-                images.add(images1);
-            });
+        Random rand = new Random();
+        try {
+            for (ProductDto productDto : products) {
+                String seller_email = randomEmailList.get(rand.nextInt(0, 18));
+                List<Images> images = new ArrayList<>();
+                Product product = objectMapper.convertValue(productDto, Product.class);
+                product.setEmail(seller_email);
+                productDto.getImages().stream().forEach(image -> {
+                    Images images1 = new Images();
+                    images1.setUrl(image);
+                    images1.setIsDownloaded(0);
+                    images1.setProduct(product);
+                    images.add(images1);
+                });
 //            images.addAll(new ArrayList<>(getImageInfo(id, photoInfoUrl, product)));
-            product.setImagesDto(images);
-            productsRepo.save(product);
-            com.sachet.parallel_asynchronous.model.dto.ProductDto event = new com.sachet.parallel_asynchronous.model.dto.ProductDto();
-            event.setPrice(9.99);
-            event.setVersion(0);
-            event.setTitle("title");
-            event.setId(1001);
-            event.setCount(3);
-            event.setEmail("sachet");
-            event.setImageUrl("url");
-            kafkaTemplate.send("user-add-product", event)
-                    .thenAccept(result -> {
-                        LOGGER.info("Successfully sent the event {}", result);
-                    }).join();
-            id++;
+                product.setImagesDto(images);
+                productsRepo.save(product);
+                com.sachet.ProductDto event = new com.sachet.ProductDto();
+                event.setPrice(product.getPrice());
+                event.setVersion(0);
+                event.setTitle(product.getTitle());
+                event.setId(product.getId());
+                event.setCount(product.getStock());
+                event.setEmail(product.getEmail());
+                event.setImageUrl(product.getImagesDto().get(0).getUrl());
+                kafkaTemplate.send("user-add-product", product.getId().toString(), event)
+                        .thenAccept(result -> {
+                            LOGGER.info("Successfully sent the event {}", result);
+                        }).join();
+                id++;
+            }
+        }catch (Exception e) {
+            LOGGER.info("Caught an exception {}", e.getMessage());
         }
     }
 
@@ -182,6 +181,7 @@ public class ProductService {
 
         ResponseEntity<ServerResponse> response = restTemplate.exchange(environmentConfiguration.getServerUrl() + "?skip=" + currentStart + "&limit=" + limit,
                 HttpMethod.GET, null, ServerResponse.class);
+        LOGGER.info("The response received from the server is {}, with the data {}", response.getStatusCode(), response.getBody().getProducts().size());
         ServerResponse serverResponse = response.getBody();
         int count = 0;
         mapProductAndReviewsSaveAll(serverResponse.getProducts(), currentStart, count);
@@ -271,17 +271,17 @@ public class ProductService {
             throw new JwtValidationFailedException("Invalid Jwt");
         }
         productsRepo.save(product);
-        LOGGER.info("Saved the product with Id: {}", product.getId());
-        com.sachet.parallel_asynchronous.model.dto.ProductDto event = new com.sachet.parallel_asynchronous.model.dto.ProductDto();
+        com.sachet.ProductDto event = new com.sachet.ProductDto();
         event.setPrice(product.getPrice());
         event.setVersion(0);
         event.setTitle(product.getTitle());
         event.setId(product.getId());
         event.setCount(product.getStock());
         event.setEmail(product.getEmail());
-        if (product.getImagesDto() != null && !product.getImagesDto().isEmpty())
-            event.setImageUrl(product.getImagesDto().get(0).getUrl());
-        kafkaTemplate.send("user-add-product", event)
+        if (productDto.getImages() != null && !productDto.getImages().isEmpty())
+            event.setImageUrl(productDto.getImages().get(0));
+        LOGGER.info("The Event Constructed is {}", event);
+        kafkaTemplate.send("user-add-product", product.getId().toString(), event)
                 .thenAccept(result -> {
                     LOGGER.info("Successfully sent the event {}", result);
                 }).join();

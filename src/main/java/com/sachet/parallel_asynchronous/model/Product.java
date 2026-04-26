@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.io.Serializable;
 import java.util.List;
@@ -12,7 +13,11 @@ import java.util.List;
 @Setter
 @Entity
 @Table(name = "product")
+@ToString
 public class Product implements Serializable {
+
+    private static final long serialVersionUID = -4716085192364697831L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
