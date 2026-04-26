@@ -1,0 +1,15 @@
+{
+  "namespace": "com.sachet",
+  "type": "record",
+  "name": "OrderDto",
+  "fields": [
+    {
+      "name": "count",
+      "type": "int"
+    },
+    {
+      "name": "productId",
+      "type": "long"
+    }
+  ]
+}

@@ -1,13 +1,12 @@
 package com.sachet.parallel_asynchronous.service;
 
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.sachet.OrderDto;
 import com.sachet.parallel_asynchronous.configuration.EnvironmentConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 @Component
 public class KafkaService {
@@ -37,16 +36,16 @@ public class KafkaService {
 //        }
 //    }
 
-//    @KafkaListener(topics = "order-created", groupId = "${spring.kafka.consumer.group-id}")
-//    public void listenOrderCreated(String data) throws JsonProcessingException {
-//        LOGGER.info("Received order created event: {}", data);
-//        productService.orderCreated(data);
-//    }
-//
-//    @KafkaListener(topics = "order-cancelled", groupId = "${spring.kafka.consumer.group-id}")
-//    public void listenOrderCancelled(String data) throws JsonProcessingException {
-//        LOGGER.info("Received order cancelled event: {}", data);
-//        productService.orderCancelled(data);
-//    }
+    @KafkaListener(topics = "order-created", groupId = "${spring.kafka.consumer.group-id}")
+    public void listenOrderCreated(OrderDto data) throws JsonProcessingException {
+        LOGGER.info("Received order created event: {}", data);
+        productService.orderCreated(data);
+    }
+
+    @KafkaListener(topics = "order-expired", groupId = "${spring.kafka.consumer.group-id}")
+    public void listenOrderCancelled(OrderDto data) throws JsonProcessingException {
+        LOGGER.info("Received order Expired event: {}", data);
+        productService.orderExpired(data);
+    }
 
 }

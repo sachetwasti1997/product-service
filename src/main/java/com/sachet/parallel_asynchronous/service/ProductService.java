@@ -3,6 +3,7 @@ package com.sachet.parallel_asynchronous.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sachet.OrderDto;
 import com.sachet.parallel_asynchronous.configuration.EnvironmentConfiguration;
 import com.sachet.parallel_asynchronous.configuration.repo.CacheRepo;
 import com.sachet.parallel_asynchronous.configuration.repo.ProductsRepo;
@@ -318,8 +319,7 @@ public class ProductService {
 //        return product.getId();
 //    }
 
-    public void orderCreated(String jsonOrder) throws JsonProcessingException {
-        OrderDto orderDto = objectMapper.readValue(jsonOrder, OrderDto.class);
+    public void orderCreated(OrderDto orderDto) throws JsonProcessingException {
         long productId = orderDto.getProductId();
         Optional<Product> product = productsRepo.findById(productId);
         Product productItem = product.get();
@@ -328,8 +328,7 @@ public class ProductService {
         LOGGER.info("Successfully reserved the product: {}", productItem);
     }
 
-    public void orderCancelled(String jsonOrder) throws JsonProcessingException {
-        OrderDto orderDto = objectMapper.readValue(jsonOrder, OrderDto.class);
+    public void orderExpired(OrderDto orderDto) throws JsonProcessingException {
         long productId = orderDto.getProductId();
         Optional<Product> product = productsRepo.findById(productId);
         Product productItem = product.get();
