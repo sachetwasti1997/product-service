@@ -1,15 +1,31 @@
 {
-  "namespace": "com.sachet",
-  "type": "record",
-  "name": "OrderDto",
-  "fields": [
-    {
-      "name": "count",
-      "type": "int"
-    },
-    {
-      "name": "productId",
-      "type": "long"
-    }
-  ]
+    "namespace": "com.sachet",
+    "type": "record",
+    "name": "OrderDto",
+    "fields": [
+        {
+            "name": "count",
+            "type": "int"
+        },
+        {
+            "name": "productId",
+            "type": "long"
+        },
+        {
+            "name": "status",
+            "type": "string"
+        },
+        {
+            "name": "sellerEmail",
+            "type": "string"
+        },
+        {
+            "name": "buyerEmail",
+            "type": "string"
+        },
+        {
+            "name": "orderId",
+            "type": "long"
+        }
+    ]
 }

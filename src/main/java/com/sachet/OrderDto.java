@@ -13,10 +13,10 @@ import org.apache.avro.message.SchemaStore;
 
 @org.apache.avro.specific.AvroGenerated
 public class OrderDto extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
-  private static final long serialVersionUID = -8513859734014743287L;
+  private static final long serialVersionUID = -153907526876039344L;
 
 
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"OrderDto\",\"namespace\":\"com.sachet\",\"fields\":[{\"name\":\"count\",\"type\":\"int\"},{\"name\":\"productId\",\"type\":\"long\"}]}");
+  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"OrderDto\",\"namespace\":\"com.sachet\",\"fields\":[{\"name\":\"count\",\"type\":\"int\"},{\"name\":\"productId\",\"type\":\"long\"},{\"name\":\"status\",\"type\":\"string\"},{\"name\":\"sellerEmail\",\"type\":\"string\"},{\"name\":\"buyerEmail\",\"type\":\"string\"},{\"name\":\"id\",\"type\":\"long\"}]}");
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 
   private static final SpecificData MODEL$ = new SpecificData();
@@ -74,6 +74,10 @@ public class OrderDto extends org.apache.avro.specific.SpecificRecordBase implem
 
   private int count;
   private long productId;
+  private java.lang.CharSequence status;
+  private java.lang.CharSequence sellerEmail;
+  private java.lang.CharSequence buyerEmail;
+  private long id;
 
   /**
    * Default constructor.  Note that this does not initialize fields
@@ -86,10 +90,18 @@ public class OrderDto extends org.apache.avro.specific.SpecificRecordBase implem
    * All-args constructor.
    * @param count The new value for count
    * @param productId The new value for productId
+   * @param status The new value for status
+   * @param sellerEmail The new value for sellerEmail
+   * @param buyerEmail The new value for buyerEmail
+   * @param id The new value for id
    */
-  public OrderDto(java.lang.Integer count, java.lang.Long productId) {
+  public OrderDto(java.lang.Integer count, java.lang.Long productId, java.lang.CharSequence status, java.lang.CharSequence sellerEmail, java.lang.CharSequence buyerEmail, java.lang.Long id) {
     this.count = count;
     this.productId = productId;
+    this.status = status;
+    this.sellerEmail = sellerEmail;
+    this.buyerEmail = buyerEmail;
+    this.id = id;
   }
 
   @Override
@@ -104,6 +116,10 @@ public class OrderDto extends org.apache.avro.specific.SpecificRecordBase implem
     switch (field$) {
     case 0: return count;
     case 1: return productId;
+    case 2: return status;
+    case 3: return sellerEmail;
+    case 4: return buyerEmail;
+    case 5: return id;
     default: throw new IndexOutOfBoundsException("Invalid index: " + field$);
     }
   }
@@ -115,6 +131,10 @@ public class OrderDto extends org.apache.avro.specific.SpecificRecordBase implem
     switch (field$) {
     case 0: count = (java.lang.Integer)value$; break;
     case 1: productId = (java.lang.Long)value$; break;
+    case 2: status = (java.lang.CharSequence)value$; break;
+    case 3: sellerEmail = (java.lang.CharSequence)value$; break;
+    case 4: buyerEmail = (java.lang.CharSequence)value$; break;
+    case 5: id = (java.lang.Long)value$; break;
     default: throw new IndexOutOfBoundsException("Invalid index: " + field$);
     }
   }
@@ -151,6 +171,74 @@ public class OrderDto extends org.apache.avro.specific.SpecificRecordBase implem
    */
   public void setProductId(long value) {
     this.productId = value;
+  }
+
+  /**
+   * Gets the value of the 'status' field.
+   * @return The value of the 'status' field.
+   */
+  public java.lang.CharSequence getStatus() {
+    return status;
+  }
+
+
+  /**
+   * Sets the value of the 'status' field.
+   * @param value the value to set.
+   */
+  public void setStatus(java.lang.CharSequence value) {
+    this.status = value;
+  }
+
+  /**
+   * Gets the value of the 'sellerEmail' field.
+   * @return The value of the 'sellerEmail' field.
+   */
+  public java.lang.CharSequence getSellerEmail() {
+    return sellerEmail;
+  }
+
+
+  /**
+   * Sets the value of the 'sellerEmail' field.
+   * @param value the value to set.
+   */
+  public void setSellerEmail(java.lang.CharSequence value) {
+    this.sellerEmail = value;
+  }
+
+  /**
+   * Gets the value of the 'buyerEmail' field.
+   * @return The value of the 'buyerEmail' field.
+   */
+  public java.lang.CharSequence getBuyerEmail() {
+    return buyerEmail;
+  }
+
+
+  /**
+   * Sets the value of the 'buyerEmail' field.
+   * @param value the value to set.
+   */
+  public void setBuyerEmail(java.lang.CharSequence value) {
+    this.buyerEmail = value;
+  }
+
+  /**
+   * Gets the value of the 'id' field.
+   * @return The value of the 'id' field.
+   */
+  public long getId() {
+    return id;
+  }
+
+
+  /**
+   * Sets the value of the 'id' field.
+   * @param value the value to set.
+   */
+  public void setId(long value) {
+    this.id = value;
   }
 
   /**
@@ -196,6 +284,10 @@ public class OrderDto extends org.apache.avro.specific.SpecificRecordBase implem
 
     private int count;
     private long productId;
+    private java.lang.CharSequence status;
+    private java.lang.CharSequence sellerEmail;
+    private java.lang.CharSequence buyerEmail;
+    private long id;
 
     /** Creates a new Builder */
     private Builder() {
@@ -216,6 +308,22 @@ public class OrderDto extends org.apache.avro.specific.SpecificRecordBase implem
         this.productId = data().deepCopy(fields()[1].schema(), other.productId);
         fieldSetFlags()[1] = other.fieldSetFlags()[1];
       }
+      if (isValidValue(fields()[2], other.status)) {
+        this.status = data().deepCopy(fields()[2].schema(), other.status);
+        fieldSetFlags()[2] = other.fieldSetFlags()[2];
+      }
+      if (isValidValue(fields()[3], other.sellerEmail)) {
+        this.sellerEmail = data().deepCopy(fields()[3].schema(), other.sellerEmail);
+        fieldSetFlags()[3] = other.fieldSetFlags()[3];
+      }
+      if (isValidValue(fields()[4], other.buyerEmail)) {
+        this.buyerEmail = data().deepCopy(fields()[4].schema(), other.buyerEmail);
+        fieldSetFlags()[4] = other.fieldSetFlags()[4];
+      }
+      if (isValidValue(fields()[5], other.id)) {
+        this.id = data().deepCopy(fields()[5].schema(), other.id);
+        fieldSetFlags()[5] = other.fieldSetFlags()[5];
+      }
     }
 
     /**
@@ -231,6 +339,22 @@ public class OrderDto extends org.apache.avro.specific.SpecificRecordBase implem
       if (isValidValue(fields()[1], other.productId)) {
         this.productId = data().deepCopy(fields()[1].schema(), other.productId);
         fieldSetFlags()[1] = true;
+      }
+      if (isValidValue(fields()[2], other.status)) {
+        this.status = data().deepCopy(fields()[2].schema(), other.status);
+        fieldSetFlags()[2] = true;
+      }
+      if (isValidValue(fields()[3], other.sellerEmail)) {
+        this.sellerEmail = data().deepCopy(fields()[3].schema(), other.sellerEmail);
+        fieldSetFlags()[3] = true;
+      }
+      if (isValidValue(fields()[4], other.buyerEmail)) {
+        this.buyerEmail = data().deepCopy(fields()[4].schema(), other.buyerEmail);
+        fieldSetFlags()[4] = true;
+      }
+      if (isValidValue(fields()[5], other.id)) {
+        this.id = data().deepCopy(fields()[5].schema(), other.id);
+        fieldSetFlags()[5] = true;
       }
     }
 
@@ -312,6 +436,165 @@ public class OrderDto extends org.apache.avro.specific.SpecificRecordBase implem
       return this;
     }
 
+    /**
+      * Gets the value of the 'status' field.
+      * @return The value.
+      */
+    public java.lang.CharSequence getStatus() {
+      return status;
+    }
+
+
+    /**
+      * Sets the value of the 'status' field.
+      * @param value The value of 'status'.
+      * @return This builder.
+      */
+    public com.sachet.OrderDto.Builder setStatus(java.lang.CharSequence value) {
+      validate(fields()[2], value);
+      this.status = value;
+      fieldSetFlags()[2] = true;
+      return this;
+    }
+
+    /**
+      * Checks whether the 'status' field has been set.
+      * @return True if the 'status' field has been set, false otherwise.
+      */
+    public boolean hasStatus() {
+      return fieldSetFlags()[2];
+    }
+
+
+    /**
+      * Clears the value of the 'status' field.
+      * @return This builder.
+      */
+    public com.sachet.OrderDto.Builder clearStatus() {
+      status = null;
+      fieldSetFlags()[2] = false;
+      return this;
+    }
+
+    /**
+      * Gets the value of the 'sellerEmail' field.
+      * @return The value.
+      */
+    public java.lang.CharSequence getSellerEmail() {
+      return sellerEmail;
+    }
+
+
+    /**
+      * Sets the value of the 'sellerEmail' field.
+      * @param value The value of 'sellerEmail'.
+      * @return This builder.
+      */
+    public com.sachet.OrderDto.Builder setSellerEmail(java.lang.CharSequence value) {
+      validate(fields()[3], value);
+      this.sellerEmail = value;
+      fieldSetFlags()[3] = true;
+      return this;
+    }
+
+    /**
+      * Checks whether the 'sellerEmail' field has been set.
+      * @return True if the 'sellerEmail' field has been set, false otherwise.
+      */
+    public boolean hasSellerEmail() {
+      return fieldSetFlags()[3];
+    }
+
+
+    /**
+      * Clears the value of the 'sellerEmail' field.
+      * @return This builder.
+      */
+    public com.sachet.OrderDto.Builder clearSellerEmail() {
+      sellerEmail = null;
+      fieldSetFlags()[3] = false;
+      return this;
+    }
+
+    /**
+      * Gets the value of the 'buyerEmail' field.
+      * @return The value.
+      */
+    public java.lang.CharSequence getBuyerEmail() {
+      return buyerEmail;
+    }
+
+
+    /**
+      * Sets the value of the 'buyerEmail' field.
+      * @param value The value of 'buyerEmail'.
+      * @return This builder.
+      */
+    public com.sachet.OrderDto.Builder setBuyerEmail(java.lang.CharSequence value) {
+      validate(fields()[4], value);
+      this.buyerEmail = value;
+      fieldSetFlags()[4] = true;
+      return this;
+    }
+
+    /**
+      * Checks whether the 'buyerEmail' field has been set.
+      * @return True if the 'buyerEmail' field has been set, false otherwise.
+      */
+    public boolean hasBuyerEmail() {
+      return fieldSetFlags()[4];
+    }
+
+
+    /**
+      * Clears the value of the 'buyerEmail' field.
+      * @return This builder.
+      */
+    public com.sachet.OrderDto.Builder clearBuyerEmail() {
+      buyerEmail = null;
+      fieldSetFlags()[4] = false;
+      return this;
+    }
+
+    /**
+      * Gets the value of the 'id' field.
+      * @return The value.
+      */
+    public long getId() {
+      return id;
+    }
+
+
+    /**
+      * Sets the value of the 'id' field.
+      * @param value The value of 'id'.
+      * @return This builder.
+      */
+    public com.sachet.OrderDto.Builder setId(long value) {
+      validate(fields()[5], value);
+      this.id = value;
+      fieldSetFlags()[5] = true;
+      return this;
+    }
+
+    /**
+      * Checks whether the 'id' field has been set.
+      * @return True if the 'id' field has been set, false otherwise.
+      */
+    public boolean hasId() {
+      return fieldSetFlags()[5];
+    }
+
+
+    /**
+      * Clears the value of the 'id' field.
+      * @return This builder.
+      */
+    public com.sachet.OrderDto.Builder clearId() {
+      fieldSetFlags()[5] = false;
+      return this;
+    }
+
     @Override
     @SuppressWarnings("unchecked")
     public OrderDto build() {
@@ -319,6 +602,10 @@ public class OrderDto extends org.apache.avro.specific.SpecificRecordBase implem
         OrderDto record = new OrderDto();
         record.count = fieldSetFlags()[0] ? this.count : (java.lang.Integer) defaultValue(fields()[0]);
         record.productId = fieldSetFlags()[1] ? this.productId : (java.lang.Long) defaultValue(fields()[1]);
+        record.status = fieldSetFlags()[2] ? this.status : (java.lang.CharSequence) defaultValue(fields()[2]);
+        record.sellerEmail = fieldSetFlags()[3] ? this.sellerEmail : (java.lang.CharSequence) defaultValue(fields()[3]);
+        record.buyerEmail = fieldSetFlags()[4] ? this.buyerEmail : (java.lang.CharSequence) defaultValue(fields()[4]);
+        record.id = fieldSetFlags()[5] ? this.id : (java.lang.Long) defaultValue(fields()[5]);
         return record;
       } catch (org.apache.avro.AvroMissingFieldException e) {
         throw e;
@@ -355,6 +642,14 @@ public class OrderDto extends org.apache.avro.specific.SpecificRecordBase implem
 
     out.writeLong(this.productId);
 
+    out.writeString(this.status);
+
+    out.writeString(this.sellerEmail);
+
+    out.writeString(this.buyerEmail);
+
+    out.writeLong(this.id);
+
   }
 
   @Override public void customDecode(org.apache.avro.io.ResolvingDecoder in)
@@ -366,8 +661,16 @@ public class OrderDto extends org.apache.avro.specific.SpecificRecordBase implem
 
       this.productId = in.readLong();
 
+      this.status = in.readString(this.status instanceof Utf8 ? (Utf8)this.status : null);
+
+      this.sellerEmail = in.readString(this.sellerEmail instanceof Utf8 ? (Utf8)this.sellerEmail : null);
+
+      this.buyerEmail = in.readString(this.buyerEmail instanceof Utf8 ? (Utf8)this.buyerEmail : null);
+
+      this.id = in.readLong();
+
     } else {
-      for (int i = 0; i < 2; i++) {
+      for (int i = 0; i < 6; i++) {
         switch (fieldOrder[i].pos()) {
         case 0:
           this.count = in.readInt();
@@ -375,6 +678,22 @@ public class OrderDto extends org.apache.avro.specific.SpecificRecordBase implem
 
         case 1:
           this.productId = in.readLong();
+          break;
+
+        case 2:
+          this.status = in.readString(this.status instanceof Utf8 ? (Utf8)this.status : null);
+          break;
+
+        case 3:
+          this.sellerEmail = in.readString(this.sellerEmail instanceof Utf8 ? (Utf8)this.sellerEmail : null);
+          break;
+
+        case 4:
+          this.buyerEmail = in.readString(this.buyerEmail instanceof Utf8 ? (Utf8)this.buyerEmail : null);
+          break;
+
+        case 5:
+          this.id = in.readLong();
           break;
 
         default:
