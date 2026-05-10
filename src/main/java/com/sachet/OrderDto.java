@@ -13,13 +13,16 @@ import org.apache.avro.message.SchemaStore;
 
 @org.apache.avro.specific.AvroGenerated
 public class OrderDto extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
-  private static final long serialVersionUID = -153907526876039344L;
+  private static final long serialVersionUID = 7834100810242072112L;
 
 
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"OrderDto\",\"namespace\":\"com.sachet\",\"fields\":[{\"name\":\"count\",\"type\":\"int\"},{\"name\":\"productId\",\"type\":\"long\"},{\"name\":\"status\",\"type\":\"string\"},{\"name\":\"sellerEmail\",\"type\":\"string\"},{\"name\":\"buyerEmail\",\"type\":\"string\"},{\"name\":\"id\",\"type\":\"long\"}]}");
+  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"OrderDto\",\"namespace\":\"com.sachet\",\"fields\":[{\"name\":\"count\",\"type\":\"int\"},{\"name\":\"productId\",\"type\":\"long\"},{\"name\":\"status\",\"type\":\"string\"},{\"name\":\"sellerEmail\",\"type\":\"string\"},{\"name\":\"buyerEmail\",\"type\":\"string\"},{\"name\":\"orderId\",\"type\":\"long\"},{\"name\":\"expiresAt\",\"type\":{\"type\":\"long\",\"logicalType\":\"timestamp-millis\",\"default\":null}}]}");
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 
   private static final SpecificData MODEL$ = new SpecificData();
+  static {
+    MODEL$.addLogicalTypeConversion(new org.apache.avro.data.TimeConversions.TimestampMillisConversion());
+  }
 
   private static final BinaryMessageEncoder<OrderDto> ENCODER =
       new BinaryMessageEncoder<>(MODEL$, SCHEMA$);
@@ -77,7 +80,8 @@ public class OrderDto extends org.apache.avro.specific.SpecificRecordBase implem
   private java.lang.CharSequence status;
   private java.lang.CharSequence sellerEmail;
   private java.lang.CharSequence buyerEmail;
-  private long id;
+  private long orderId;
+  private java.time.Instant expiresAt;
 
   /**
    * Default constructor.  Note that this does not initialize fields
@@ -93,15 +97,17 @@ public class OrderDto extends org.apache.avro.specific.SpecificRecordBase implem
    * @param status The new value for status
    * @param sellerEmail The new value for sellerEmail
    * @param buyerEmail The new value for buyerEmail
-   * @param id The new value for id
+   * @param orderId The new value for orderId
+   * @param expiresAt The new value for expiresAt
    */
-  public OrderDto(java.lang.Integer count, java.lang.Long productId, java.lang.CharSequence status, java.lang.CharSequence sellerEmail, java.lang.CharSequence buyerEmail, java.lang.Long id) {
+  public OrderDto(java.lang.Integer count, java.lang.Long productId, java.lang.CharSequence status, java.lang.CharSequence sellerEmail, java.lang.CharSequence buyerEmail, java.lang.Long orderId, java.time.Instant expiresAt) {
     this.count = count;
     this.productId = productId;
     this.status = status;
     this.sellerEmail = sellerEmail;
     this.buyerEmail = buyerEmail;
-    this.id = id;
+    this.orderId = orderId;
+    this.expiresAt = expiresAt.truncatedTo(java.time.temporal.ChronoUnit.MILLIS);
   }
 
   @Override
@@ -119,9 +125,27 @@ public class OrderDto extends org.apache.avro.specific.SpecificRecordBase implem
     case 2: return status;
     case 3: return sellerEmail;
     case 4: return buyerEmail;
-    case 5: return id;
+    case 5: return orderId;
+    case 6: return expiresAt;
     default: throw new IndexOutOfBoundsException("Invalid index: " + field$);
     }
+  }
+
+  private static final org.apache.avro.Conversion<?>[] conversions =
+      new org.apache.avro.Conversion<?>[] {
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      new org.apache.avro.data.TimeConversions.TimestampMillisConversion(),
+      null
+  };
+
+  @Override
+  public org.apache.avro.Conversion<?> getConversion(int field) {
+    return conversions[field];
   }
 
   // Used by DatumReader.  Applications should not call.
@@ -134,7 +158,8 @@ public class OrderDto extends org.apache.avro.specific.SpecificRecordBase implem
     case 2: status = (java.lang.CharSequence)value$; break;
     case 3: sellerEmail = (java.lang.CharSequence)value$; break;
     case 4: buyerEmail = (java.lang.CharSequence)value$; break;
-    case 5: id = (java.lang.Long)value$; break;
+    case 5: orderId = (java.lang.Long)value$; break;
+    case 6: expiresAt = (java.time.Instant)value$; break;
     default: throw new IndexOutOfBoundsException("Invalid index: " + field$);
     }
   }
@@ -225,20 +250,37 @@ public class OrderDto extends org.apache.avro.specific.SpecificRecordBase implem
   }
 
   /**
-   * Gets the value of the 'id' field.
-   * @return The value of the 'id' field.
+   * Gets the value of the 'orderId' field.
+   * @return The value of the 'orderId' field.
    */
-  public long getId() {
-    return id;
+  public long getOrderId() {
+    return orderId;
   }
 
 
   /**
-   * Sets the value of the 'id' field.
+   * Sets the value of the 'orderId' field.
    * @param value the value to set.
    */
-  public void setId(long value) {
-    this.id = value;
+  public void setOrderId(long value) {
+    this.orderId = value;
+  }
+
+  /**
+   * Gets the value of the 'expiresAt' field.
+   * @return The value of the 'expiresAt' field.
+   */
+  public java.time.Instant getExpiresAt() {
+    return expiresAt;
+  }
+
+
+  /**
+   * Sets the value of the 'expiresAt' field.
+   * @param value the value to set.
+   */
+  public void setExpiresAt(java.time.Instant value) {
+    this.expiresAt = value.truncatedTo(java.time.temporal.ChronoUnit.MILLIS);
   }
 
   /**
@@ -287,7 +329,8 @@ public class OrderDto extends org.apache.avro.specific.SpecificRecordBase implem
     private java.lang.CharSequence status;
     private java.lang.CharSequence sellerEmail;
     private java.lang.CharSequence buyerEmail;
-    private long id;
+    private long orderId;
+    private java.time.Instant expiresAt;
 
     /** Creates a new Builder */
     private Builder() {
@@ -320,9 +363,13 @@ public class OrderDto extends org.apache.avro.specific.SpecificRecordBase implem
         this.buyerEmail = data().deepCopy(fields()[4].schema(), other.buyerEmail);
         fieldSetFlags()[4] = other.fieldSetFlags()[4];
       }
-      if (isValidValue(fields()[5], other.id)) {
-        this.id = data().deepCopy(fields()[5].schema(), other.id);
+      if (isValidValue(fields()[5], other.orderId)) {
+        this.orderId = data().deepCopy(fields()[5].schema(), other.orderId);
         fieldSetFlags()[5] = other.fieldSetFlags()[5];
+      }
+      if (isValidValue(fields()[6], other.expiresAt)) {
+        this.expiresAt = data().deepCopy(fields()[6].schema(), other.expiresAt);
+        fieldSetFlags()[6] = other.fieldSetFlags()[6];
       }
     }
 
@@ -352,9 +399,13 @@ public class OrderDto extends org.apache.avro.specific.SpecificRecordBase implem
         this.buyerEmail = data().deepCopy(fields()[4].schema(), other.buyerEmail);
         fieldSetFlags()[4] = true;
       }
-      if (isValidValue(fields()[5], other.id)) {
-        this.id = data().deepCopy(fields()[5].schema(), other.id);
+      if (isValidValue(fields()[5], other.orderId)) {
+        this.orderId = data().deepCopy(fields()[5].schema(), other.orderId);
         fieldSetFlags()[5] = true;
+      }
+      if (isValidValue(fields()[6], other.expiresAt)) {
+        this.expiresAt = data().deepCopy(fields()[6].schema(), other.expiresAt);
+        fieldSetFlags()[6] = true;
       }
     }
 
@@ -557,41 +608,80 @@ public class OrderDto extends org.apache.avro.specific.SpecificRecordBase implem
     }
 
     /**
-      * Gets the value of the 'id' field.
+      * Gets the value of the 'orderId' field.
       * @return The value.
       */
-    public long getId() {
-      return id;
+    public long getOrderId() {
+      return orderId;
     }
 
 
     /**
-      * Sets the value of the 'id' field.
-      * @param value The value of 'id'.
+      * Sets the value of the 'orderId' field.
+      * @param value The value of 'orderId'.
       * @return This builder.
       */
-    public com.sachet.OrderDto.Builder setId(long value) {
+    public com.sachet.OrderDto.Builder setOrderId(long value) {
       validate(fields()[5], value);
-      this.id = value;
+      this.orderId = value;
       fieldSetFlags()[5] = true;
       return this;
     }
 
     /**
-      * Checks whether the 'id' field has been set.
-      * @return True if the 'id' field has been set, false otherwise.
+      * Checks whether the 'orderId' field has been set.
+      * @return True if the 'orderId' field has been set, false otherwise.
       */
-    public boolean hasId() {
+    public boolean hasOrderId() {
       return fieldSetFlags()[5];
     }
 
 
     /**
-      * Clears the value of the 'id' field.
+      * Clears the value of the 'orderId' field.
       * @return This builder.
       */
-    public com.sachet.OrderDto.Builder clearId() {
+    public com.sachet.OrderDto.Builder clearOrderId() {
       fieldSetFlags()[5] = false;
+      return this;
+    }
+
+    /**
+      * Gets the value of the 'expiresAt' field.
+      * @return The value.
+      */
+    public java.time.Instant getExpiresAt() {
+      return expiresAt;
+    }
+
+
+    /**
+      * Sets the value of the 'expiresAt' field.
+      * @param value The value of 'expiresAt'.
+      * @return This builder.
+      */
+    public com.sachet.OrderDto.Builder setExpiresAt(java.time.Instant value) {
+      validate(fields()[6], value);
+      this.expiresAt = value.truncatedTo(java.time.temporal.ChronoUnit.MILLIS);
+      fieldSetFlags()[6] = true;
+      return this;
+    }
+
+    /**
+      * Checks whether the 'expiresAt' field has been set.
+      * @return True if the 'expiresAt' field has been set, false otherwise.
+      */
+    public boolean hasExpiresAt() {
+      return fieldSetFlags()[6];
+    }
+
+
+    /**
+      * Clears the value of the 'expiresAt' field.
+      * @return This builder.
+      */
+    public com.sachet.OrderDto.Builder clearExpiresAt() {
+      fieldSetFlags()[6] = false;
       return this;
     }
 
@@ -605,7 +695,8 @@ public class OrderDto extends org.apache.avro.specific.SpecificRecordBase implem
         record.status = fieldSetFlags()[2] ? this.status : (java.lang.CharSequence) defaultValue(fields()[2]);
         record.sellerEmail = fieldSetFlags()[3] ? this.sellerEmail : (java.lang.CharSequence) defaultValue(fields()[3]);
         record.buyerEmail = fieldSetFlags()[4] ? this.buyerEmail : (java.lang.CharSequence) defaultValue(fields()[4]);
-        record.id = fieldSetFlags()[5] ? this.id : (java.lang.Long) defaultValue(fields()[5]);
+        record.orderId = fieldSetFlags()[5] ? this.orderId : (java.lang.Long) defaultValue(fields()[5]);
+        record.expiresAt = fieldSetFlags()[6] ? this.expiresAt : (java.time.Instant) defaultValue(fields()[6]);
         return record;
       } catch (org.apache.avro.AvroMissingFieldException e) {
         throw e;
@@ -633,75 +724,6 @@ public class OrderDto extends org.apache.avro.specific.SpecificRecordBase implem
     READER$.read(this, SpecificData.getDecoder(in));
   }
 
-  @Override protected boolean hasCustomCoders() { return true; }
-
-  @Override public void customEncode(org.apache.avro.io.Encoder out)
-    throws java.io.IOException
-  {
-    out.writeInt(this.count);
-
-    out.writeLong(this.productId);
-
-    out.writeString(this.status);
-
-    out.writeString(this.sellerEmail);
-
-    out.writeString(this.buyerEmail);
-
-    out.writeLong(this.id);
-
-  }
-
-  @Override public void customDecode(org.apache.avro.io.ResolvingDecoder in)
-    throws java.io.IOException
-  {
-    org.apache.avro.Schema.Field[] fieldOrder = in.readFieldOrderIfDiff();
-    if (fieldOrder == null) {
-      this.count = in.readInt();
-
-      this.productId = in.readLong();
-
-      this.status = in.readString(this.status instanceof Utf8 ? (Utf8)this.status : null);
-
-      this.sellerEmail = in.readString(this.sellerEmail instanceof Utf8 ? (Utf8)this.sellerEmail : null);
-
-      this.buyerEmail = in.readString(this.buyerEmail instanceof Utf8 ? (Utf8)this.buyerEmail : null);
-
-      this.id = in.readLong();
-
-    } else {
-      for (int i = 0; i < 6; i++) {
-        switch (fieldOrder[i].pos()) {
-        case 0:
-          this.count = in.readInt();
-          break;
-
-        case 1:
-          this.productId = in.readLong();
-          break;
-
-        case 2:
-          this.status = in.readString(this.status instanceof Utf8 ? (Utf8)this.status : null);
-          break;
-
-        case 3:
-          this.sellerEmail = in.readString(this.sellerEmail instanceof Utf8 ? (Utf8)this.sellerEmail : null);
-          break;
-
-        case 4:
-          this.buyerEmail = in.readString(this.buyerEmail instanceof Utf8 ? (Utf8)this.buyerEmail : null);
-          break;
-
-        case 5:
-          this.id = in.readLong();
-          break;
-
-        default:
-          throw new java.io.IOException("Corrupt ResolvingDecoder.");
-        }
-      }
-    }
-  }
 }
 
 

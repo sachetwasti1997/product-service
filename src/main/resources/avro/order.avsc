@@ -26,6 +26,14 @@
         {
             "name": "orderId",
             "type": "long"
+        },
+        {
+            "name": "expiresAt",
+            "type": {
+                "type": "long",
+                "logicalType": "timestamp-millis",
+                "default": null
+            }
         }
     ]
 }

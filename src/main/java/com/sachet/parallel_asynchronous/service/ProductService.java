@@ -271,6 +271,16 @@ public class ProductService {
         if (!jwtService.validateToken(email, token)) {
             throw new JwtValidationFailedException("Invalid Jwt");
         }
+
+        List<Images> images = new ArrayList<>();
+        productDto.getImages().forEach(image -> {
+            Images imagesDto = new Images();
+            imagesDto.setProduct(product);
+            imagesDto.setUrl(image);
+            imagesDto.setIsDownloaded(0);
+            images.add(imagesDto);
+        });
+        product.setImagesDto(images);
         productsRepo.save(product);
         com.sachet.ProductDto event = new com.sachet.ProductDto();
         event.setPrice(product.getPrice());
